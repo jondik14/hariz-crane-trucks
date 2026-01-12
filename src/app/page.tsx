@@ -219,7 +219,7 @@ function LandingContent() {
     setFormStatus("loading");
     setFormError("");
     
-    const endpoint = "https://formspree.io/f/xvzzoyze";
+    const endpoint = "https://formspree.io/f/xvzzozye";
     
     try {
       const response = await fetch(endpoint, {
