@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/assets/hariz favicon.svg?v=2",
   },
+  verification: {
+    google: "enZNLQIQbyFDDFklMLRhcACTjVgC-Dg6hbizvK9ME1s",
+  },
   other: {
     "format-detection": "telephone=no",
   },
