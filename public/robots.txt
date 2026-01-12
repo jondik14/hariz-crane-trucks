@@ -1,0 +1,8 @@
+# Robots.txt for Hariz Crane Trucks
+# https://harizcranetrucks.com.au
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://harizcranetrucks.com.au/sitemap.xml
