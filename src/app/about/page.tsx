@@ -32,6 +32,15 @@ export default function AboutPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // GA4 call click tracking
+  const trackCallClick = () => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "call_click", {
+        phone_number: "0469798247"
+      });
+    }
+  };
+
   const snappyEntrance = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
@@ -65,7 +74,7 @@ export default function AboutPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <a href="tel:0469798247" suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
@@ -233,7 +242,7 @@ export default function AboutPage() {
             We provide fast responses and clear communication for every project. Call us directly to discuss your requirements.
           </motion.p>
           <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-            <a href="tel:0469798247" suppressHydrationWarning className="w-full md:w-auto bg-[#2a1c2f] hover:bg-amber-500 hover:text-[#2a1c2f] text-white font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4">
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="w-full md:w-auto bg-[#2a1c2f] hover:bg-amber-500 hover:text-[#2a1c2f] text-white font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4">
               <Phone className="w-4 h-4" /> 0469 798 247
             </a>
             <a href="/#quote" className="w-full md:w-auto border-2 border-[#2a1c2f] hover:bg-zinc-50 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-4">
@@ -324,7 +333,7 @@ export default function AboutPage() {
                 Contact Us
               </a>
               <div className="space-y-6">
-                <a href="tel:0469798247" suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
+                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all">
                     <Phone className="w-4 h-4" />
                   </div>
@@ -354,7 +363,7 @@ export default function AboutPage() {
 
       {/* MOBILE BAR */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-3">
-        <a href="tel:0469798247" suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
+        <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
         <a href="/#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
       </div>
     </div>

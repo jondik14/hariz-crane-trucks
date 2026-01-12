@@ -322,6 +322,15 @@ function LandingContent() {
     mouseY.set(e.clientY - rect.top);
   };
 
+  // GA4 call click tracking
+  const trackCallClick = () => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "call_click", {
+        phone_number: "0469798247"
+      });
+    }
+  };
+
   const services = [
     { 
       icon: <CraneIcon className="w-8 h-8 md:w-10 md:h-10" />, 
@@ -459,7 +468,7 @@ function LandingContent() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <a href="tel:0469798247" suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
@@ -496,7 +505,7 @@ function LandingContent() {
             </a>
             <div className="flex flex-col items-center md:items-start">
               <p className="text-[11px] font-black text-zinc-300 uppercase tracking-widest mb-1.5 md:mb-2">Talk To The Owner</p>
-              <a href="tel:0469798247" suppressHydrationWarning className="text-white font-black text-2xl md:text-4xl hover:text-amber-500 transition-colors drop-shadow-md">0469 798 247</a>
+              <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-white font-black text-2xl md:text-4xl hover:text-amber-500 transition-colors drop-shadow-md">0469 798 247</a>
             </div>
           </motion.div>
         </div>
@@ -827,7 +836,7 @@ function LandingContent() {
               </div>
               <div className="mt-10 md:mt-12 pt-6 md:pt-8 border-t border-zinc-50 text-center md:text-left">
                 <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">
-                  Call <a href="tel:0469798247" suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
+                  Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
                 </p>
               </div>
             </motion.div>
@@ -1042,7 +1051,7 @@ function LandingContent() {
             <span className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Speak With Us</span>
             <h3 className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">Call Us <br className="hidden md:block" /> Directly.</h3>
             <p className="text-zinc-500 text-[15px] md:text-xl font-medium mb-10 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0">Direct owner contact. <br className="md:hidden" /> Clear timelines, upfront pricing, and reliable service.</p>
-            <a href="tel:0469798247" suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-10 md:mb-12 block">0469 798 247</a>
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-10 md:mb-12 block">0469 798 247</a>
             <div className="space-y-4 text-[#2a1c2f] flex flex-col items-center lg:items-start mb-8">
               {["Free Quotes within 24 Hours", "Fully Licensed & Insured", "Available 24/7 for Emergencies"].map((t, i) => (
                 <div key={i} className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest"><CheckCircle2 className="w-4 h-4 text-green-500" /> {t}</div>
@@ -1133,7 +1142,7 @@ function LandingContent() {
                 Contact Us
               </a>
               <div className="space-y-6">
-                <a href="tel:0469798247" suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
+                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all">
                     <Phone className="w-4 h-4" />
                   </div>
@@ -1163,7 +1172,7 @@ function LandingContent() {
 
       {/* MOBILE BAR */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-3">
-        <a href="tel:0469798247" suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
+        <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
         <a href="#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
       </div>
     </div>

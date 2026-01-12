@@ -40,6 +40,15 @@ export default function ServicesPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // GA4 call click tracking
+  const trackCallClick = () => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "call_click", {
+        phone_number: "0469798247"
+      });
+    }
+  };
+
   const snappyEntrance = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
@@ -115,7 +124,7 @@ export default function ServicesPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <a href="tel:0469798247" suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
@@ -194,7 +203,7 @@ export default function ServicesPage() {
               <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center flex items-center justify-center gap-4">Get My Quote <ArrowRight className="w-4 h-4" /></a>
               <div className="flex flex-col items-center md:items-start">
                 <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-1">Direct Call</p>
-                <a href="tel:0469798247" suppressHydrationWarning className="text-xl md:text-3xl font-black text-[#2a1c2f] hover:text-amber-500 transition-colors text-white">0469 798 247</a>
+                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-xl md:text-3xl font-black text-[#2a1c2f] hover:text-amber-500 transition-colors text-white">0469 798 247</a>
               </div>
             </div>
           </div>
@@ -285,7 +294,7 @@ export default function ServicesPage() {
                 Contact Us
               </a>
               <div className="space-y-6">
-                <a href="tel:0469798247" suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
+                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex items-center justify-center md:justify-start gap-4 group">
                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all">
                     <Phone className="w-4 h-4" />
                   </div>
@@ -315,7 +324,7 @@ export default function ServicesPage() {
 
       {/* MOBILE BAR */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-3">
-        <a href="tel:0469798247" suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
+        <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
         <a href="/#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
       </div>
     </div>
