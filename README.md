@@ -49,6 +49,8 @@ Create a `.env.local` file in the root directory (optional):
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 ```
 
+**Note:** The quote form is pre-configured to submit to Formspree and email `info@harizcranetrucks.com.au`. No environment variables are required for the form to work.
+
 ## Deploying to Vercel
 
 ### Step 1: Push to GitHub

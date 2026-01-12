@@ -174,6 +174,17 @@ function LandingContent() {
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
   
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    service: "Crane Hire",
+    message: ""
+  });
+  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [formError, setFormError] = useState("");
+  
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -185,6 +196,91 @@ function LandingContent() {
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get('service');
   const [selectedService, setSelectedService] = useState("Crane Hire");
+  
+  // Form submission handler
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) {
+      setFormError("Please fill in all required fields.");
+      setFormStatus("error");
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setFormError("Please enter a valid email address.");
+      setFormStatus("error");
+      return;
+    }
+    
+    setFormStatus("loading");
+    setFormError("");
+    
+    const endpoint = "https://formspree.io/f/xvzzoyze";
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          _replyto: formData.email,
+          service: formData.service,
+          message: formData.message
+        })
+      });
+      
+      if (response.ok) {
+        setFormStatus("success");
+        // Clear form
+        setFormData({
+          name: "",
+          phone: "",
+          email: "",
+          service: "Crane Hire",
+          message: ""
+        });
+        setSelectedService("Crane Hire");
+        
+        // Fire GA success event
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "quote_submit", {
+            service_type: formData.service
+          });
+        }
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setFormError(data.error || "Something went wrong. Please try again.");
+        setFormStatus("error");
+        
+        // Fire GA error event
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "quote_submit_error", {
+            error_type: "submission_failed",
+            status_code: response.status
+          });
+        }
+      }
+    } catch {
+      setFormError("Network error. Please check your connection and try again.");
+      setFormStatus("error");
+      
+      // Fire GA error event
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "quote_submit_error", {
+          error_type: "network_error"
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     setHasMounted(true);
@@ -208,7 +304,9 @@ function LandingContent() {
         "Urgent": "Urgent Lift"
       };
 
-      setSelectedService(serviceMap[formattedService] || formattedService);
+      const service = serviceMap[formattedService] || formattedService;
+      setSelectedService(service);
+      setFormData(prev => ({ ...prev, service }));
       
       // Smooth scroll to quote section after a short delay
       setTimeout(() => {
@@ -824,41 +922,120 @@ function LandingContent() {
           >
             <div className="bg-[#2a1c2f] p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl text-white">
               <h2 className="text-3xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase leading-none text-balance">Get Your Quote <br /><span className="text-amber-500">In 15 Mins.</span></h2>
-              <form className="space-y-5 md:space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Full Name</label>
-                  <input type="text" placeholder="John Smith" className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required />
-                </div>
-                <div className="grid md:grid-cols-2 gap-5 md:gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Telephone</label>
-                    <input type="tel" inputMode="tel" placeholder="0469 798 247" className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required />
+              
+              {formStatus === "success" ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-8 h-8 text-white" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Email</label>
-                    <input type="email" placeholder="email@provider.com" className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
-                  <select 
-                    value={selectedService}
-                    onChange={(e) => setSelectedService(e.target.value)}
-                    className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold appearance-none"
+                  <h3 className="text-2xl font-black mb-4 uppercase">Quote Request Sent!</h3>
+                  <p className="text-zinc-400 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
+                  <button 
+                    onClick={() => setFormStatus("idle")}
+                    className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-all uppercase tracking-widest"
                   >
-                    <option>Crane Hire</option>
-                    <option>Machinery Transport</option>
-                    <option>Container Relocation</option>
-                    <option>Material Delivery</option>
-                    <option>Urgent Lift</option>
-                  </select>
+                    Send Another Quote
+                  </button>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Message</label>
-                  <textarea placeholder="Lift weight, dimensions, location..." rows={3} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold resize-none"></textarea>
-                </div>
-                <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black text-lg md:text-xl py-5 md:py-6 rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-widest mt-4 min-h-[56px]">Request Free Quote</button>
-              </form>
+              ) : (
+                <form onSubmit={handleFormSubmit} className="space-y-5 md:space-y-4">
+                  {formStatus === "error" && formError && (
+                    <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-sm font-semibold">
+                      {formError}
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Full Name *</label>
+                    <input 
+                      type="text" 
+                      name="name"
+                      placeholder="John Smith" 
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                      required 
+                      disabled={formStatus === "loading"}
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-5 md:gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Telephone *</label>
+                      <input 
+                        type="tel" 
+                        name="phone"
+                        inputMode="tel" 
+                        placeholder="0469 798 247" 
+                        value={formData.phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                        required 
+                        disabled={formStatus === "loading"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Email *</label>
+                      <input 
+                        type="email" 
+                        name="email"
+                        placeholder="email@provider.com" 
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                        required 
+                        disabled={formStatus === "loading"}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
+                    <select 
+                      name="service"
+                      value={formData.service}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, service: e.target.value }));
+                        setSelectedService(e.target.value);
+                      }}
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold appearance-none"
+                      disabled={formStatus === "loading"}
+                    >
+                      <option>Crane Hire</option>
+                      <option>Machinery Transport</option>
+                      <option>Container Relocation</option>
+                      <option>Material Delivery</option>
+                      <option>Urgent Lift</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Message</label>
+                    <textarea 
+                      name="message"
+                      placeholder="Lift weight, dimensions, location..." 
+                      rows={3} 
+                      value={formData.message}
+                      onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold resize-none"
+                      disabled={formStatus === "loading"}
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={formStatus === "loading"}
+                    className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-500/50 disabled:cursor-not-allowed text-[#2a1c2f] font-black text-lg md:text-xl py-5 md:py-6 rounded-xl transition-all shadow-lg active:scale-95 disabled:active:scale-100 uppercase tracking-widest mt-4 min-h-[56px] flex items-center justify-center gap-3"
+                  >
+                    {formStatus === "loading" ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      "Request Free Quote"
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </motion.div>
           <motion.div className="lg:col-span-6 flex flex-col justify-center text-center lg:text-left" initial={{ opacity: 0, x: isMobile ? 0 : 80, y: isMobile ? 80 : 0 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}>
