@@ -120,8 +120,8 @@ function TruckScene() {
         <Canvas 
           shadows 
           camera={{ 
-            position: isMobileView ? [0, 10, 45] : [0, 12, 50], 
-            fov: isMobileView ? 35 : 30 
+            position: isMobileView ? [0, 8, 22] : [0, 12, 50], 
+            fov: isMobileView ? 40 : 30 
           }} 
           className="!w-full !h-full"
           style={{ position: 'absolute', inset: 0, zIndex: 1 }}
