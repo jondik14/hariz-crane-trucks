@@ -55,41 +55,25 @@ function TruckModel() {
     
     const time = state.clock.elapsedTime;
     
-    // 1. Initial Drive-In (Starts at 0s, ends at 2.5s)
-    if (time < 2.5) {
-      const p = time / 2.5;
-      const ease = 1 - Math.pow(1 - p, 3); // Cubic ease out
-      truckRef.current.position.z = THREE.MathUtils.lerp(30, 0, ease);
-      truckRef.current.position.x = THREE.MathUtils.lerp(10, 0, ease);
-      // Engine vibration
-      truckRef.current.position.y = Math.sin(time * 20) * 0.04;
-    } else {
-      // 2. Resting / Showcase State
-      const idleTime = time - 2.5;
+    // Gentle hover and slow rotation - always centered
+    truckRef.current.position.y = Math.sin(time * 1.5) * 0.15;
+    truckRef.current.rotation.y = time * 0.15; // Slow continuous rotation
+    
+    // Subtle crane animation
+    Object.values(craneParts).forEach((part) => {
+      const name = part.name.toLowerCase();
       
-      // Slow rotation as requested
-      truckRef.current.rotation.y += 0.0025;
+      // Lift the crane arms gently
+      if (name.includes('arm') || name.includes('boom')) {
+        const lift = Math.sin(time * 0.5) * 0.15;
+        part.rotation.x = -Math.abs(lift);
+      }
       
-      // Gentle idle sway
-      truckRef.current.position.y = Math.sin(idleTime * 2) * 0.03;
-      
-      // 3. Crane Animation Sequence
-      Object.values(craneParts).forEach((part) => {
-        const name = part.name.toLowerCase();
-        
-        // Lift the crane arms
-        if (name.includes('arm') || name.includes('boom')) {
-          // Sync lifting with a slow wave
-          const lift = Math.sin(idleTime * 0.5) * 0.3;
-          part.rotation.x = -Math.abs(lift); // Ensure it lifts upwards
-        }
-        
-        // Rotate the base pivot
-        if (name.includes('joint') || name.includes('pivot') || name.includes('base')) {
-          part.rotation.y = Math.sin(idleTime * 0.4) * 0.2;
-        }
-      });
-    }
+      // Subtle base pivot
+      if (name.includes('joint') || name.includes('pivot') || name.includes('base')) {
+        part.rotation.y = Math.sin(time * 0.4) * 0.1;
+      }
+    });
   });
 
   return (
@@ -97,8 +81,8 @@ function TruckModel() {
       <primitive 
         ref={truckRef} 
         object={scene} 
-        scale={22} 
-        rotation={[0.1, 0, 0]} 
+        scale={18} 
+        rotation={[0.15, -0.5, 0]} 
       />
     </Center>
   );
@@ -106,15 +90,42 @@ function TruckModel() {
 
 // Main 3D Section for Fleet
 function TruckScene() {
+  const [isMobileView, setIsMobileView] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
-    <div className="w-full h-full min-h-[400px] relative">
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible">
+      {/* Yellow radial glow behind the truck - more visible */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 70% 60% at 50% 50%, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.12) 35%, transparent 65%),
+            radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251, 191, 36, 0.15) 0%, transparent 60%)
+          `
+        }}
+      />
       <Suspense fallback={
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
         </div>
       }>
-        <Canvas shadows camera={{ position: [28, 18, 28], fov: 35 }}>
+        <Canvas 
+          shadows 
+          camera={{ 
+            position: isMobileView ? [0, 10, 45] : [0, 12, 50], 
+            fov: isMobileView ? 35 : 30 
+          }} 
+          className="!w-full !h-full"
+          style={{ position: 'absolute', inset: 0, zIndex: 1 }}
+        >
           <ambientLight intensity={1.5} />
           <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />
           <directionalLight position={[-15, 15, 10]} intensity={1.5} />
@@ -171,8 +182,11 @@ function LandingContent() {
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -288,6 +302,36 @@ function LandingContent() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Handle video loading and content sequence
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleCanPlay = () => {
+      setVideoLoaded(true);
+      // Small delay before showing content for smooth sequence
+      setTimeout(() => setContentReady(true), 200);
+    };
+
+    // If video is already loaded (cached)
+    if (video.readyState >= 3) {
+      handleCanPlay();
+    } else {
+      video.addEventListener('canplay', handleCanPlay);
+    }
+
+    // Fallback: show content after 3 seconds even if video hasn't loaded
+    const fallbackTimer = setTimeout(() => {
+      setVideoLoaded(true);
+      setContentReady(true);
+    }, 3000);
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -482,24 +526,74 @@ function LandingContent() {
       </header>
 
       {/* 2. HERO */}
-      <section className="relative min-h-[600px] h-[75vh] md:h-[90vh] flex items-center justify-center overflow-hidden">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+      <section className="relative min-h-[600px] h-[75vh] md:h-[90vh] flex items-center justify-center overflow-hidden bg-[#2a1c2f]">
+        {/* Branded loading background - shown while video loads */}
+        <div 
+          className={`absolute inset-0 z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 50% at 50% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 60%),
+              linear-gradient(180deg, #1a1020 0%, #2a1c2f 50%, #1a1020 100%)
+            `
+          }}
+        >
+          {/* Animated loading indicator */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-amber-500/20 rounded-full" />
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-amber-500 rounded-full animate-spin" />
+            </div>
+            <p className="mt-6 text-amber-500/60 font-black text-[11px] uppercase tracking-[0.3em]">Loading</p>
+          </div>
+        </div>
+        
+        {/* Video with fade-in */}
+        <video 
+          ref={videoRef}
+          autoPlay 
+          muted 
+          loop 
+          playsInline 
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+        >
           <source src="/assets/hariz hero video.mp4" type="video/mp4" />
         </video>
-        {/* Slightly deeper purple overlay for brand depth and text legibility */}
-        <div className="absolute inset-0 bg-[#2a1c2f]/55 z-0" />
         
+        {/* Slightly deeper purple overlay for brand depth and text legibility */}
+        <div className={`absolute inset-0 bg-[#2a1c2f]/55 z-10 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`} />
+        
+        {/* Content with sequenced entrance */}
         <div className="relative z-20 w-full max-w-5xl px-6 text-center text-white drop-shadow-2xl">
-          <motion.div {...snappyEntrance} className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-400 px-4 py-2 rounded-full mb-6 md:mb-8 text-[13px] font-black tracking-[0.2em] uppercase backdrop-blur-md">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-400 px-4 py-2 rounded-full mb-6 md:mb-8 text-[13px] font-black tracking-[0.2em] uppercase backdrop-blur-md"
+          >
             <ShieldCheck className="w-4 h-4" /> Fully Licensed & Insured
           </motion.div>
-          <motion.h1 {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.1 }} className="text-3xl md:text-7xl lg:text-8xl font-black mb-6 md:mb-8 leading-[1.1] tracking-tight uppercase [text-shadow:_0_4px_24px_rgb(0_0_0_/_40%)]">
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+            className="text-3xl md:text-7xl lg:text-8xl font-black mb-6 md:mb-8 leading-[1.1] tracking-tight uppercase [text-shadow:_0_4px_24px_rgb(0_0_0_/_40%)]"
+          >
             Sydney-Based <br /><span className="text-amber-500">Crane Truck Hire.</span>
           </motion.h1>
-          <motion.p {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.2 }} className="text-[15px] md:text-xl text-zinc-100 mb-10 md:mb-12 font-medium leading-relaxed max-w-2xl mx-auto [text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]">
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="text-[15px] md:text-xl text-zinc-100 mb-10 md:mb-12 font-medium leading-relaxed max-w-2xl mx-auto [text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]"
+          >
             Residential and light commercial lifts. <br className="hidden md:block" /> Safe, reliable, and locally operated across NSW.
           </motion.p>
-          <motion.div {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.3 }} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+            className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8"
+          >
             <a href="#quote" className="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black text-base px-10 py-4.5 md:py-4 rounded-xl transition-all shadow-xl active:scale-95 uppercase flex items-center justify-center gap-4 min-h-[56px]">
               Book Your Lift <ArrowRight className="w-4 h-4" />
             </a>
@@ -598,18 +692,16 @@ function LandingContent() {
           {/* Inner container with semi-transparent dark background */}
           <div className="bg-[#2a1c2f]/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 lg:p-16">
             <div className="mb-10 md:mb-14">
-              <motion.span {...snappyEntrance} className="text-amber-400 font-black text-[11px] uppercase tracking-[0.3em] mb-3 block">Our Services</motion.span>
-              <motion.h2 {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.1 }} className="text-3xl md:text-5xl font-black tracking-tight uppercase text-white leading-[0.95]">
+              <span className="text-amber-400 font-black text-[11px] uppercase tracking-[0.3em] mb-3 block">Our Services</span>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase text-white leading-[0.95]">
                 Specialist <span className="text-amber-500">Lifting</span>
-              </motion.h2>
+              </h2>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
               {services.map((s, i) => (
-                <motion.div 
+                <div 
                   key={i} 
-                  {...snappyEntrance} 
-                  transition={{ ...snappyEntrance.transition, delay: i * 0.05 }} 
                   className="group bg-[#35263b]/80 p-4 md:p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300"
                 >
                   <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2a1c2f] rounded-lg flex items-center justify-center mb-4 text-amber-400 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all duration-300">
@@ -617,22 +709,18 @@ function LandingContent() {
                   </div>
                   <h3 className="text-sm md:text-base font-black mb-1.5 tracking-tight uppercase text-white group-hover:text-amber-500 transition-colors">{s.title}</h3>
                   <p className="text-zinc-400 font-medium text-[12px] leading-relaxed hidden md:block">{s.desc}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
 
-            <motion.div 
-              {...snappyEntrance} 
-              transition={{ delay: 0.4 }}
-              className="mt-10 md:mt-14 flex justify-center md:justify-start"
-            >
+            <div className="mt-10 md:mt-14 flex justify-center md:justify-start">
               <a 
                 href="/services" 
                 className="inline-flex items-center gap-3 border border-white/20 hover:border-amber-500 hover:text-amber-500 text-white font-black px-10 py-5 rounded-xl text-[12px] uppercase tracking-widest transition-all active:scale-95"
               >
                 View All Services <ArrowRight className="w-4 h-4" />
               </a>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -640,7 +728,7 @@ function LandingContent() {
       {/* 4. FLEET */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
-          <motion.div {...snappyEntrance} className="lg:col-span-6 relative aspect-[4/3] md:aspect-square flex items-center justify-center">
+          <motion.div {...snappyEntrance} className="lg:col-span-6 relative aspect-square w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none">
             <TruckScene />
           </motion.div>
           <div className="lg:col-span-6">
@@ -792,7 +880,7 @@ function LandingContent() {
       )}
 
       {/* AREAS WE SERVICE */}
-      <section ref={mapRef} onMouseMove={handleMouseMove} onMouseEnter={() => setIsHoveringMap(true)} onMouseLeave={() => setIsHoveringMap(false)} className="relative py-20 md:py-32 bg-white overflow-hidden">
+      <section ref={mapRef} onMouseMove={handleMouseMove} onMouseEnter={() => setIsHoveringMap(true)} onMouseLeave={() => setIsHoveringMap(false)} className="relative py-12 md:py-32 bg-white overflow-hidden">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <Image src="/assets/Snazzy maps 2.svg" alt="Sydney Map Base" fill className="object-cover opacity-10 grayscale" priority />
           <motion.div className="absolute inset-0 z-10" initial={{ opacity: 0 }} animate={{ opacity: isHoveringMap ? 1 : 0 }} transition={{ duration: 0.4 }} style={{ maskImage, WebkitMaskImage: maskImage, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}>
@@ -800,54 +888,51 @@ function LandingContent() {
           </motion.div>
         </div>
 
-        <div className="relative z-20 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
+        <div className="relative z-20 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           <div className="lg:col-span-5">
-            <motion.div {...snappyEntrance} className="w-20 md:w-24 h-1.5 md:h-2 bg-amber-500 mb-6 md:mb-8" />
-            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-6xl font-black mb-6 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">
+            <div className="w-16 md:w-24 h-1 md:h-2 bg-amber-500 mb-4 md:mb-8" />
+            <h2 className="text-2xl md:text-6xl font-black mb-4 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">
               Sydney-Wide <br />
               <span className="text-amber-500">Crane Support</span>
-            </motion.h2>
-            <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="space-y-4 md:space-y-6 mb-10 md:mb-12">
-              <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-zinc-100 shadow-sm">
-                <p className="text-zinc-600 font-bold leading-relaxed text-[15px] md:text-base text-balance">Professional crane hire within hours. <br className="md:hidden" /> Fast response across Sydney & Regional NSW.</p>
+            </h2>
+            <div className="space-y-3 md:space-y-6 mb-6 md:mb-12">
+              <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm">
+                <p className="text-zinc-600 font-bold leading-relaxed text-sm md:text-base">Professional crane hire within hours. Fast response across Sydney & Regional NSW.</p>
               </div>
-              <div className="bg-white/90 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-zinc-100 shadow-sm">
-                <p className="text-zinc-600 font-bold leading-relaxed text-[14px] md:text-sm">Optimized for narrow street access. <br className="md:hidden" /> 100% safety compliance on every technical job.</p>
+              <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm">
+                <p className="text-zinc-600 font-bold leading-relaxed text-[13px] md:text-sm">Optimized for narrow street access. 100% safety compliance on every technical job.</p>
               </div>
-            </motion.div>
-            <motion.div {...snappyEntrance} transition={{ delay: 0.3 }} className="hidden lg:flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6">
+            </div>
+            <div className="hidden lg:flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6">
               <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4.5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center min-h-[56px] flex items-center justify-center">Check Availability</a>
               <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 font-black text-[11px] uppercase tracking-widest">
                 <CheckCircle2 className="w-4 h-4 text-amber-500" /> Licensed & Insured
               </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="lg:col-span-7 lg:mt-24">
-            <motion.div {...snappyEntrance} transition={{ delay: 0.4 }} className="bg-white/95 backdrop-blur-sm p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-zinc-100 max-w-lg mx-auto lg:ml-auto mb-8 lg:mb-0">
-              <h3 className="text-lg md:text-xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f]">Areas We Serve</h3>
-              <div className="grid grid-cols-2 gap-x-6 md:gap-x-8 gap-y-5 md:gap-y-6">
+            <div className="bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-xl md:shadow-2xl border border-zinc-100 max-w-lg mx-auto lg:ml-auto">
+              <h3 className="text-base md:text-xl font-black mb-5 md:mb-10 tracking-tight uppercase text-[#2a1c2f]">Areas We Serve</h3>
+              <div className="grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-3 md:gap-y-6">
                 {areas.map((area, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="text-[11px] md:text-[10px] font-black uppercase tracking-widest text-zinc-600">{area}</span>
+                  <div key={i} className="flex items-center gap-2 md:gap-3">
+                    <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500 shrink-0" />
+                    <span className="text-[10px] md:text-[10px] font-black uppercase tracking-wider md:tracking-widest text-zinc-600">{area}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-10 md:mt-12 pt-6 md:pt-8 border-t border-zinc-50 text-center md:text-left">
-                <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">
+              <div className="mt-6 md:mt-12 pt-5 md:pt-8 border-t border-zinc-100 text-center md:text-left">
+                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-400">
                   Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Mobile-only CTA below the card */}
-            <motion.div {...snappyEntrance} transition={{ delay: 0.5 }} className="lg:hidden flex flex-col items-center gap-4">
-              <a href="#quote" className="w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4.5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center min-h-[56px] flex items-center justify-center">Check Availability</a>
-              <div className="flex items-center justify-center gap-2 text-zinc-500 font-black text-[11px] uppercase tracking-widest">
-                <CheckCircle2 className="w-4 h-4 text-amber-500" /> Licensed & Insured
-              </div>
-            </motion.div>
+            <div className="lg:hidden flex flex-col items-center gap-3 mt-6">
+              <a href="#quote" className="w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4 rounded-xl text-[12px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center min-h-[52px] flex items-center justify-center">Check Availability</a>
+            </div>
           </div>
         </div>
       </section>
@@ -1171,9 +1256,9 @@ function LandingContent() {
       </footer>
 
       {/* MOBILE BAR */}
-      <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-3">
-        <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
-        <a href="#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
+      <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 flex gap-2.5">
+        <a href="#quote" className="flex-[1.6] bg-amber-500 text-[#2a1c2f] font-black py-4 rounded-xl flex items-center justify-center gap-2.5 shadow-2xl uppercase text-[12px] tracking-widest min-h-[52px]"><ArrowRight className="w-4 h-4" /> Get Quote</a>
+        <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-1 bg-[#2a1c2f] text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-2xl uppercase text-[11px] tracking-widest min-h-[52px] border border-white/10"><Phone className="w-4 h-4" /> Call</a>
       </div>
     </div>
   );
