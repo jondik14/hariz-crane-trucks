@@ -19,6 +19,7 @@ import {
   MapPin,
   Users,
   X,
+  Menu,
   ChevronLeft,
   ChevronRight,
   Facebook,
@@ -33,7 +34,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, Environment, ContactShadows, Center } from "@react-three/drei";
 import * as THREE from "three";
 
-function TruckModel() {
+function TruckModel({ scale = 18 }: { scale?: number }) {
   const { scene } = useGLTF("/assets/models/crane truck 3d model.glb");
   const truckRef = useRef<THREE.Group>(null);
   
@@ -81,7 +82,7 @@ function TruckModel() {
       <primitive 
         ref={truckRef} 
         object={scene} 
-        scale={18} 
+        scale={scale} 
         rotation={[0.15, -0.5, 0]} 
       />
     </Center>
@@ -100,7 +101,7 @@ function TruckScene() {
   }, []);
 
   return (
-    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible">
+    <div className="w-full h-full min-h-[360px] md:min-h-[380px] relative overflow-visible">
       {/* Yellow radial glow behind the truck - more visible */}
       <div 
         className="absolute inset-0 pointer-events-none z-0"
@@ -120,8 +121,8 @@ function TruckScene() {
         <Canvas 
           shadows 
           camera={{ 
-            position: isMobileView ? [0, 8, 22] : [0, 12, 50], 
-            fov: isMobileView ? 40 : 30 
+            position: isMobileView ? [0, 7, 28] : [0, 12, 50], 
+            fov: isMobileView ? 36 : 30 
           }} 
           className="!w-full !h-full"
           style={{ position: 'absolute', inset: 0, zIndex: 1 }}
@@ -129,7 +130,7 @@ function TruckScene() {
           <ambientLight intensity={1.5} />
           <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />
           <directionalLight position={[-15, 15, 10]} intensity={1.5} />
-          <TruckModel />
+          <TruckModel scale={isMobileView ? 16 : 18} />
           <Environment preset="city" />
         </Canvas>
       </Suspense>
@@ -181,6 +182,7 @@ function LandingContent() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(false);
@@ -303,6 +305,23 @@ function LandingContent() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Lock body scroll when mobile nav is open; close menu when resizing to desktop
+  useEffect(() => {
+    if (mobileNavOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMobileNavOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [mobileNavOpen]);
 
   // Handle video loading and content sequence
   useEffect(() => {
@@ -501,8 +520,8 @@ function LandingContent() {
       {/* 1. HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
-          <div className="flex items-center gap-12">
-            <a href="/" className="transition-transform hover:scale-[1.02]">
+          <div className="flex items-center gap-4 md:gap-12">
+            <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileNavOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
             <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
@@ -511,22 +530,75 @@ function LandingContent() {
               <a href="#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
               <span className="text-lg">0469 798 247</span>
             </a>
-            <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
+            <button
+              type="button"
+              aria-label="Open menu"
+              onClick={() => setMobileNavOpen(true)}
+              className="md:hidden w-11 h-11 rounded-xl bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors shrink-0"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-5 md:px-8 py-3 md:py-4 rounded-xl text-[10px] md:text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest shrink-0">
               Get Quote
             </a>
           </div>
         </div>
       </header>
 
+      {/* Mobile nav overlay */}
+      <motion.div
+        initial={false}
+        animate={mobileNavOpen ? { opacity: 1, pointerEvents: "auto" } : { opacity: 0, pointerEvents: "none" }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-[60] md:hidden"
+      >
+        <div className="absolute inset-0 bg-[#2a1c2f]/90 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} aria-hidden="true" />
+        <motion.div
+          initial={false}
+          animate={mobileNavOpen ? { x: 0 } : { x: "100%" }}
+          transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute top-0 right-0 bottom-0 w-[min(320px,85vw)] bg-white shadow-2xl flex flex-col"
+        >
+          <div className="flex items-center justify-between p-6 border-b border-zinc-100">
+            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Menu</span>
+            <button type="button" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} className="w-10 h-10 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <nav className="flex flex-col p-6 gap-1">
+            <a href="/about" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">
+              About
+            </a>
+            <a href="/services" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">
+              Services
+            </a>
+            <a href="#quote" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">
+              Contact
+            </a>
+          </nav>
+          <div className="mt-auto p-6 pt-4 space-y-4 border-t border-zinc-100">
+            <a href="tel:0469798247" onClick={() => { trackCallClick(); setMobileNavOpen(false); }} suppressHydrationWarning className="flex items-center gap-3 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+              <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center">
+                <Phone className="w-4 h-4 text-zinc-600" />
+              </div>
+              <span>0469 798 247</span>
+            </a>
+            <a href="#quote" onClick={() => setMobileNavOpen(false)} className="block w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black py-4 rounded-xl text-[12px] uppercase tracking-widest text-center transition-all active:scale-[0.98]">
+              Get Quote
+            </a>
+          </div>
+        </motion.div>
+      </motion.div>
+
       {/* 2. HERO */}
-      <section className="relative min-h-[600px] h-[75vh] md:h-[90vh] flex items-center justify-center overflow-hidden bg-[#2a1c2f]">
+      <section className="relative min-h-[500px] h-[70vh] md:min-h-[600px] md:h-[90vh] flex items-center justify-center overflow-hidden bg-[#2a1c2f]">
         {/* Branded loading background - shown while video loads */}
         <div 
           className={`absolute inset-0 z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
@@ -568,7 +640,7 @@ function LandingContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-400 px-4 py-2 rounded-full mb-6 md:mb-8 text-[13px] font-black tracking-[0.2em] uppercase backdrop-blur-md"
+            className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-400 px-4 py-2 rounded-full mb-4 md:mb-8 text-[13px] font-black tracking-[0.2em] uppercase backdrop-blur-md"
           >
             <ShieldCheck className="w-4 h-4" /> Fully Licensed & Insured
           </motion.div>
@@ -576,7 +648,7 @@ function LandingContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-            className="text-3xl md:text-7xl lg:text-8xl font-black mb-6 md:mb-8 leading-[1.1] tracking-tight uppercase [text-shadow:_0_4px_24px_rgb(0_0_0_/_40%)]"
+            className="text-3xl md:text-7xl lg:text-8xl font-black mb-4 md:mb-8 leading-[1.1] tracking-tight uppercase [text-shadow:_0_4px_24px_rgb(0_0_0_/_40%)]"
           >
             Sydney-Based <br /><span className="text-amber-500">Crane Truck Hire.</span>
           </motion.h1>
@@ -584,7 +656,7 @@ function LandingContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={contentReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-            className="text-[15px] md:text-xl text-zinc-100 mb-10 md:mb-12 font-medium leading-relaxed max-w-2xl mx-auto [text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]"
+            className="text-[15px] md:text-xl text-zinc-100 mb-6 md:mb-12 font-medium leading-relaxed max-w-2xl mx-auto [text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]"
           >
             Residential and light commercial lifts. <br className="hidden md:block" /> Safe, reliable, and locally operated across NSW.
           </motion.p>
@@ -606,9 +678,9 @@ function LandingContent() {
       </section>
 
       {/* 3. TRUST / ABOUT SECTION - Redesigned for High-End Conversion */}
-      <section className="py-16 md:py-24 bg-white relative z-20 overflow-hidden">
+      <section className="py-12 md:py-24 bg-white relative z-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center">
             <motion.div 
               className="lg:col-span-7 relative"
               {...snappyEntrance}
@@ -627,20 +699,20 @@ function LandingContent() {
 
             {/* Right: Focused Value Prop */}
             <div className="lg:col-span-5">
-              <motion.div {...snappyEntrance} className="inline-flex items-center gap-3 bg-zinc-100 px-4 py-2 rounded-full mb-6">
+              <motion.div {...snappyEntrance} className="inline-flex items-center gap-3 bg-zinc-100 px-4 py-2 rounded-full mb-4 md:mb-6">
                 <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-[#2a1c2f] font-black text-[11px] uppercase tracking-[0.2em]">About Hariz Transport</span>
               </motion.div>
               
-              <motion.h2 {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.1 }} className="text-3xl md:text-5xl font-black mb-6 tracking-tight uppercase leading-[0.95] text-[#2a1c2f]">
+              <motion.h2 {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.1 }} className="text-3xl md:text-5xl font-black mb-4 md:mb-6 tracking-tight uppercase leading-[0.95] text-[#2a1c2f]">
                 Professional Lifts. <span className="text-amber-500">Grounded in Safety.</span>
               </motion.h2>
               
-              <motion.p {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.2 }} className="text-zinc-500 text-base md:text-lg font-medium mb-8 leading-relaxed">
+              <motion.p {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.2 }} className="text-zinc-500 text-base md:text-lg font-medium mb-6 md:mb-8 leading-relaxed">
                 We provide a locally owned crane truck service across Sydney. We focus on clear communication and reliable planning for every lift we undertake.
               </motion.p>
               
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
                 {[
                   { title: "Skilled Operators", icon: <Users className="w-4 h-4" /> },
                   { title: "Competitive Rates", icon: <Zap className="w-4 h-4" /> },
@@ -665,7 +737,7 @@ function LandingContent() {
       </section>
 
       {/* 4. SERVICES - With Gravel Background */}
-      <section className="py-20 md:py-32 relative z-20 overflow-hidden">
+      <section className="py-12 md:py-32 relative z-20 overflow-hidden">
         {/* Gravel background image */}
         <div className="absolute inset-0">
           <Image 
@@ -690,9 +762,9 @@ function LandingContent() {
         
         <div className="relative z-10 max-w-5xl mx-auto px-6">
           {/* Inner container with semi-transparent dark background */}
-          <div className="bg-[#2a1c2f]/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 lg:p-16">
-            <div className="mb-10 md:mb-14">
-              <span className="text-amber-400 font-black text-[11px] uppercase tracking-[0.3em] mb-3 block">Our Services</span>
+          <div className="bg-[#2a1c2f]/90 backdrop-blur-sm rounded-3xl p-6 md:p-12 lg:p-16">
+            <div className="mb-6 md:mb-14">
+              <span className="text-amber-400 font-black text-[11px] uppercase tracking-[0.3em] mb-2 md:mb-3 block">Our Services</span>
               <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase text-white leading-[0.95]">
                 Specialist <span className="text-amber-500">Lifting</span>
               </h2>
@@ -713,7 +785,7 @@ function LandingContent() {
               ))}
             </div>
 
-            <div className="mt-10 md:mt-14 flex justify-center md:justify-start">
+            <div className="mt-6 md:mt-14 flex justify-center md:justify-start">
               <a 
                 href="/services" 
                 className="inline-flex items-center gap-3 border border-white/20 hover:border-amber-500 hover:text-amber-500 text-white font-black px-10 py-5 rounded-xl text-[12px] uppercase tracking-widest transition-all active:scale-95"
@@ -726,14 +798,14 @@ function LandingContent() {
       </section>
 
       {/* 4. FLEET */}
-      <section className="py-16 md:py-24 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
-          <motion.div {...snappyEntrance} className="lg:col-span-6 relative aspect-square w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none">
+      <section className="py-12 md:py-24 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center">
+          <motion.div {...snappyEntrance} className="lg:col-span-6 relative aspect-[3/4] md:aspect-square w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none">
             <TruckScene />
           </motion.div>
           <div className="lg:col-span-6">
-            <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>
-            <motion.p {...snappyEntrance} transition={{ delay: 0.1 }} className="text-zinc-600 text-base md:text-lg font-medium mb-10 md:mb-12 leading-relaxed max-w-xl">
+            <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-4 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>
+            <motion.p {...snappyEntrance} transition={{ delay: 0.1 }} className="text-zinc-600 text-base md:text-lg font-medium mb-6 md:mb-12 leading-relaxed max-w-xl">
               Modern fleet for maximum safety. <br className="hidden md:block" /> Careful handling for technical jobsite requirements.
             </motion.p>
             <div className="grid grid-cols-2 gap-3 md:gap-4">
@@ -756,16 +828,16 @@ function LandingContent() {
       </section>
 
       {/* RECENT PROJECTS */}
-      <section className="py-16 md:py-24 bg-zinc-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-12 md:mb-16">
-          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">Recent Works</motion.span>
+      <section className="py-12 md:py-24 bg-zinc-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-8 md:mb-16">
+          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-2 md:mb-4 block">Recent Works</motion.span>
           <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f]">
             Technical <span className="text-amber-500">Lifts</span> <br className="md:hidden" /> & Transport
           </motion.h2>
         </div>
 
         <div 
-          className="flex flex-col gap-6 md:gap-8 cursor-pointer"
+          className="flex flex-col gap-4 md:gap-8 cursor-pointer"
           onMouseEnter={() => setIsGalleryHovered(true)}
           onMouseLeave={() => setIsGalleryHovered(false)}
         >
@@ -880,7 +952,7 @@ function LandingContent() {
       )}
 
       {/* AREAS WE SERVICE */}
-      <section ref={mapRef} onMouseMove={handleMouseMove} onMouseEnter={() => setIsHoveringMap(true)} onMouseLeave={() => setIsHoveringMap(false)} className="relative py-12 md:py-32 bg-white overflow-hidden">
+      <section ref={mapRef} onMouseMove={handleMouseMove} onMouseEnter={() => setIsHoveringMap(true)} onMouseLeave={() => setIsHoveringMap(false)} className="relative py-10 md:py-32 bg-white overflow-hidden">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <Image src="/assets/Snazzy maps 2.svg" alt="Sydney Map Base" fill className="object-cover opacity-10 grayscale" priority />
           <motion.div className="absolute inset-0 z-10" initial={{ opacity: 0 }} animate={{ opacity: isHoveringMap ? 1 : 0 }} transition={{ duration: 0.4 }} style={{ maskImage, WebkitMaskImage: maskImage, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}>
@@ -888,20 +960,24 @@ function LandingContent() {
           </motion.div>
         </div>
 
-        <div className="relative z-20 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+        <div className="relative z-20 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-16 items-start">
           <div className="lg:col-span-5">
-            <div className="w-16 md:w-24 h-1 md:h-2 bg-amber-500 mb-4 md:mb-8" />
-            <h2 className="text-2xl md:text-6xl font-black mb-4 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">
+            <div className="w-16 md:w-24 h-1 md:h-2 bg-amber-500 mb-3 md:mb-8" />
+            <h2 className="text-2xl md:text-6xl font-black mb-3 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">
               Sydney-Wide <br />
               <span className="text-amber-500">Crane Support</span>
             </h2>
-            <div className="space-y-3 md:space-y-6 mb-6 md:mb-12">
-              <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm">
-                <p className="text-zinc-600 font-bold leading-relaxed text-sm md:text-base">Professional crane hire within hours. Fast response across Sydney & Regional NSW.</p>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm">
-                <p className="text-zinc-600 font-bold leading-relaxed text-[13px] md:text-sm">Optimized for narrow street access. 100% safety compliance on every technical job.</p>
-              </div>
+            <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm mb-5 md:mb-12">
+              <ul className="space-y-2 md:space-y-3 text-zinc-600 font-bold leading-relaxed text-sm md:text-base">
+                <li className="flex gap-2 md:gap-3">
+                  <span className="text-amber-500 mt-1.5 shrink-0">•</span>
+                  <span>Professional crane hire within hours. Fast response across Sydney & Regional NSW.</span>
+                </li>
+                <li className="flex gap-2 md:gap-3">
+                  <span className="text-amber-500 mt-1.5 shrink-0">•</span>
+                  <span>Optimized for narrow street access. 100% safety compliance on every technical job.</span>
+                </li>
+              </ul>
             </div>
             <div className="hidden lg:flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6">
               <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4.5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center min-h-[56px] flex items-center justify-center">Check Availability</a>
@@ -912,9 +988,9 @@ function LandingContent() {
           </div>
 
           <div className="lg:col-span-7 lg:mt-24">
-            <div className="bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-xl md:shadow-2xl border border-zinc-100 max-w-lg mx-auto lg:ml-auto">
-              <h3 className="text-base md:text-xl font-black mb-5 md:mb-10 tracking-tight uppercase text-[#2a1c2f]">Areas We Serve</h3>
-              <div className="grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-3 md:gap-y-6">
+            <div className="bg-white/95 backdrop-blur-sm p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-xl md:shadow-2xl border border-zinc-100 max-w-lg mx-auto lg:ml-auto">
+              <h3 className="text-base md:text-xl font-black mb-4 md:mb-10 tracking-tight uppercase text-[#2a1c2f]">Areas We Serve</h3>
+              <div className="grid grid-cols-2 gap-x-3 md:gap-x-8 gap-y-2 md:gap-y-6">
                 {areas.map((area, i) => (
                   <div key={i} className="flex items-center gap-2 md:gap-3">
                     <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500 shrink-0" />
@@ -922,7 +998,7 @@ function LandingContent() {
                   </div>
                 ))}
               </div>
-              <div className="mt-6 md:mt-12 pt-5 md:pt-8 border-t border-zinc-100 text-center md:text-left">
+              <div className="mt-4 md:mt-12 pt-4 md:pt-8 border-t border-zinc-100 text-center md:text-left">
                 <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-400">
                   Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
                 </p>
@@ -930,7 +1006,10 @@ function LandingContent() {
             </div>
 
             {/* Mobile-only CTA below the card */}
-            <div className="lg:hidden flex flex-col items-center gap-3 mt-6">
+            <div className="lg:hidden flex flex-col items-center gap-2 mt-4">
+              <div className="flex items-center justify-center gap-2 text-zinc-500 font-black text-[11px] uppercase tracking-widest">
+                <CheckCircle2 className="w-4 h-4 text-amber-500" /> Licensed & Insured
+              </div>
               <a href="#quote" className="w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4 rounded-xl text-[12px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center min-h-[52px] flex items-center justify-center">Check Availability</a>
             </div>
           </div>
@@ -938,9 +1017,9 @@ function LandingContent() {
       </section>
 
       {/* 5. TESTIMONIALS */}
-      <section className="relative py-16 md:py-24 bg-[#2a1c2f] text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-12 md:mb-16">
-          <motion.span {...snappyEntrance} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block text-center md:text-left">Our Reviews</motion.span>
+      <section className="relative py-12 md:py-24 bg-[#2a1c2f] text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-8 md:mb-16">
+          <motion.span {...snappyEntrance} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-2 md:mb-4 block text-center md:text-left">Our Reviews</motion.span>
           <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black tracking-tight uppercase leading-[1.1] text-center md:text-left">
             Client <span className="text-amber-500">Feedback</span>
           </motion.h2>
@@ -980,7 +1059,7 @@ function LandingContent() {
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">FAQ</motion.span>
-          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] mb-12">Question? <span className="text-amber-500">Look here.</span></motion.h2>
+          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] mb-8 md:mb-12">Question? <span className="text-amber-500">Look here.</span></motion.h2>
           <div className="space-y-4 text-left">
             {[
               { q: "What crane truck services do you provide?", a: "Crane hire, machinery transport, container moves, material deliveries, and urgent same-day services across Sydney and NSW." },
@@ -1005,8 +1084,8 @@ function LandingContent() {
       </section>
 
       {/* 7. FINAL CONVERSION */}
-      <section id="quote" ref={quoteRef} className="py-16 md:py-24 bg-zinc-50 border-t border-zinc-100 overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center relative z-10">
+      <section id="quote" ref={quoteRef} className="py-12 md:py-24 bg-zinc-50 border-t border-zinc-100 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center relative z-10">
           <motion.div 
             className="lg:col-span-6"
             initial={{ opacity: 0, x: isMobile ? 0 : -80, y: isMobile ? 80 : 0 }}
@@ -1015,7 +1094,7 @@ function LandingContent() {
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="bg-[#2a1c2f] p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl text-white">
-              <h2 className="text-3xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase leading-none text-balance">Get Your Quote <br /><span className="text-amber-500">In 15 Mins.</span></h2>
+              <h2 className="text-3xl md:text-5xl font-black mb-6 md:mb-10 tracking-tight uppercase leading-none text-balance">Get Your Quote <br /><span className="text-amber-500">In 15 Mins.</span></h2>
               
               {formStatus === "success" ? (
                 <div className="text-center py-12">
@@ -1133,11 +1212,11 @@ function LandingContent() {
             </div>
           </motion.div>
           <motion.div className="lg:col-span-6 flex flex-col justify-center text-center lg:text-left" initial={{ opacity: 0, x: isMobile ? 0 : 80, y: isMobile ? 80 : 0 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}>
-            <span className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Speak With Us</span>
-            <h3 className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">Call Us <br className="hidden md:block" /> Directly.</h3>
-            <p className="text-zinc-500 text-[15px] md:text-xl font-medium mb-10 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0">Direct owner contact. <br className="md:hidden" /> Clear timelines, upfront pricing, and reliable service.</p>
-            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-10 md:mb-12 block">0469 798 247</a>
-            <div className="space-y-4 text-[#2a1c2f] flex flex-col items-center lg:items-start mb-8">
+            <span className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Speak With Us</span>
+            <h3 className="text-2xl md:text-5xl font-black mb-4 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">Call Us <br className="hidden md:block" /> Directly.</h3>
+            <p className="text-zinc-500 text-[15px] md:text-xl font-medium mb-6 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0">Direct owner contact. <br className="md:hidden" /> Clear timelines, upfront pricing, and reliable service.</p>
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-6 md:mb-12 block">0469 798 247</a>
+            <div className="space-y-3 md:space-y-4 text-[#2a1c2f] flex flex-col items-center lg:items-start mb-6 md:mb-8">
               {["Free Quotes within 24 Hours", "Fully Licensed & Insured", "Available 24/7 for Emergencies"].map((t, i) => (
                 <div key={i} className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest"><CheckCircle2 className="w-4 h-4 text-green-500" /> {t}</div>
               ))}
@@ -1147,9 +1226,9 @@ function LandingContent() {
       </section>
 
       {/* 8. FOOTER */}
-      <footer className="py-16 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
+      <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 md:gap-16 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 mb-10 md:mb-16">
             {/* Brand Section */}
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
@@ -1188,7 +1267,7 @@ function LandingContent() {
                 ].map((link, i) => (
                   <li key={i}>
                     <a 
-                      href={`/?service=${link.slug}#quote`}
+                      href="/services"
                       className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
@@ -1249,7 +1328,7 @@ function LandingContent() {
             <p>Since 2022</p>
             <p className="text-center">Copyright © 2026 Hariz Crane Trucks | All Rights Reserved</p>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
             </div>
           </div>
         </div>

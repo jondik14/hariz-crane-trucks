@@ -17,6 +17,8 @@ import {
   Facebook,
   Instagram,
   Mail,
+  X,
+  Menu,
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -24,6 +26,7 @@ import { useEffect, useState } from "react";
 
 export default function AboutPage() {
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -31,6 +34,14 @@ export default function AboutPage() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (mobileNavOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    const onResize = () => { if (window.innerWidth >= 768) setMobileNavOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => { document.body.style.overflow = ""; window.removeEventListener("resize", onResize); };
+  }, [mobileNavOpen]);
 
   // GA4 call click tracking
   const trackCallClick = () => {
@@ -63,8 +74,8 @@ export default function AboutPage() {
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
-          <div className="flex items-center gap-12">
-            <a href="/" className="transition-transform hover:scale-[1.02]">
+          <div className="flex items-center gap-4 md:gap-12">
+            <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileNavOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
             <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
@@ -73,22 +84,50 @@ export default function AboutPage() {
               <a href="/#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
               <span className="text-lg">0469 798 247</span>
             </a>
-            <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
+            <button type="button" aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="md:hidden w-11 h-11 rounded-xl bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors shrink-0">
+              <Menu className="w-5 h-5" />
+            </button>
+            <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-5 md:px-8 py-3 md:py-4 rounded-xl text-[10px] md:text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest shrink-0">
               Get Quote
             </a>
           </div>
         </div>
       </header>
 
+      {/* Mobile nav */}
+      <motion.div initial={false} animate={mobileNavOpen ? { opacity: 1, pointerEvents: "auto" } : { opacity: 0, pointerEvents: "none" }} transition={{ duration: 0.2 }} className="fixed inset-0 z-[60] md:hidden">
+        <div className="absolute inset-0 bg-[#2a1c2f]/90 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} aria-hidden="true" />
+        <motion.div initial={false} animate={mobileNavOpen ? { x: 0 } : { x: "100%" }} transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="absolute top-0 right-0 bottom-0 w-[min(320px,85vw)] bg-white shadow-2xl flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-zinc-100">
+            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Menu</span>
+            <button type="button" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} className="w-10 h-10 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <nav className="flex flex-col p-6 gap-1">
+            <a href="/about" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">About</a>
+            <a href="/services" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">Services</a>
+            <a href="/#quote" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">Contact</a>
+          </nav>
+          <div className="mt-auto p-6 pt-4 space-y-4 border-t border-zinc-100">
+            <a href="tel:0469798247" onClick={() => { trackCallClick(); setMobileNavOpen(false); }} suppressHydrationWarning className="flex items-center gap-3 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+              <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center"><Phone className="w-4 h-4 text-zinc-600" /></div>
+              <span>0469 798 247</span>
+            </a>
+            <a href="/#quote" onClick={() => setMobileNavOpen(false)} className="block w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black py-4 rounded-xl text-[12px] uppercase tracking-widest text-center transition-all active:scale-[0.98]">Get Quote</a>
+          </div>
+        </motion.div>
+      </motion.div>
+
       {/* HERO SECTION */}
-      <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
+      <section className="relative pt-32 pb-14 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-40">
           <Image src="/assets/contsurciton gravel 2.webp" alt="Background" fill className="object-cover" priority />
         </div>
@@ -103,8 +142,8 @@ export default function AboutPage() {
         />
         
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">About Hariz Crane Trucks</motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl md:text-7xl font-black mb-8 md:mb-10 tracking-tight uppercase leading-none max-w-4xl text-balance">
+          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">About Hariz Crane Trucks</motion.span>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl md:text-7xl font-black mb-5 md:mb-10 tracking-tight uppercase leading-none max-w-4xl text-balance">
             Sydney-Based Crane Truck Hire. <span className="text-amber-500 text-nowrap">Locally Operated.</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-zinc-300 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
@@ -114,14 +153,14 @@ export default function AboutPage() {
       </section>
 
       {/* CORE PILLARS */}
-      <section className="py-12 md:py-16 bg-white border-b border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+      <section className="py-8 md:py-16 bg-white border-b border-zinc-100">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-8">
           {[
             { icon: <ShieldCheck className="w-6 h-6" />, label: "Protection", value: "Fully Insured" },
             { icon: <ClipboardCheck className="w-6 h-6" />, label: "Compliance", value: "Licensed Operators" },
             { icon: <MapPin className="w-6 h-6" />, label: "Service Area", value: "Sydney & Regional NSW" }
           ].map((stat, i) => (
-            <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="flex items-center gap-6 p-6 md:p-8 rounded-2xl bg-zinc-50 border border-zinc-100">
+            <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="flex items-center gap-4 md:gap-6 p-4 md:p-8 rounded-2xl bg-zinc-50 border border-zinc-100">
               <div className="w-14 h-14 bg-amber-100 rounded-xl flex-shrink-0 flex items-center justify-center text-amber-600">
                 {stat.icon}
               </div>
@@ -135,14 +174,14 @@ export default function AboutPage() {
       </section>
 
       {/* HOW WE WORK */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
+      <section className="py-12 md:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center">
           <div className="lg:col-span-6">
-            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Process</motion.span>
-            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-none text-balance">Grounded in Safety and Clear Communication.</motion.h2>
-            <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="space-y-6 text-zinc-600 text-base md:text-lg font-medium leading-relaxed">
+            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Our Process</motion.span>
+            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black mb-5 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-none text-balance">Grounded in Safety and Clear Communication.</motion.h2>
+            <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="space-y-4 md:space-y-6 text-zinc-600 text-base md:text-lg font-medium leading-relaxed">
               <p>We approach every job with a practical mindset. As a small team, we take the time to understand the requirements of your lift before we arrive on site.</p>
-              <div className="space-y-4 pt-4">
+              <div className="space-y-3 md:space-y-4 pt-3 md:pt-4">
                 {[
                   { title: "Site Checks", desc: "We review access and ground conditions to ensure a safe setup." },
                   { title: "Job Planning", desc: "Clear coordination with you regarding timelines and placement." },
@@ -166,22 +205,22 @@ export default function AboutPage() {
       </section>
 
       {/* SAFETY & COMPLIANCE */}
-      <section className="py-20 md:py-32 bg-[#2a1c2f] text-white">
+      <section className="py-12 md:py-32 bg-[#2a1c2f] text-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-3xl">
-            <motion.span {...snappyEntrance} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Compliance</motion.span>
-            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black mb-8 tracking-tight uppercase leading-none">Safety Without Compromise.</motion.h2>
-            <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-400 text-base md:text-lg font-medium mb-12 leading-relaxed">
+            <motion.span {...snappyEntrance} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Compliance</motion.span>
+            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black mb-5 md:mb-8 tracking-tight uppercase leading-none">Safety Without Compromise.</motion.h2>
+            <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-400 text-base md:text-lg font-medium mb-8 md:mb-12 leading-relaxed">
               Safety isn't just a checkbox for us; it's how we operate. We follow all NSW safety standards to ensure every lift is completed without incident.
             </motion.p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {[
               { title: "Fully Insured", desc: "Public liability and goods in transit insurance for your peace of mind." },
               { title: "Certified Gear", desc: "Our crane and truck undergo regular maintenance and inspections." },
               { title: "Licensed Team", desc: "All operators are fully licensed and trained for technical lifts." }
             ].map((item, i) => (
-              <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-8 rounded-2xl bg-white/5 border border-white/10">
+              <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-5 md:p-8 rounded-2xl bg-white/5 border border-white/10">
                 <h3 className="text-lg font-black mb-3 uppercase text-amber-500">{item.title}</h3>
                 <p className="text-sm md:text-base text-zinc-400 font-medium">{item.desc}</p>
               </motion.div>
@@ -191,20 +230,20 @@ export default function AboutPage() {
       </section>
 
       {/* WHO WE WORK WITH */}
-      <section className="py-20 md:py-32 bg-white">
+      <section className="py-12 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Clients</motion.span>
+          <div className="text-center mb-8 md:mb-16">
+            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Our Clients</motion.span>
             <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f]">Supporting Local Trades</motion.h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {[
               { icon: <Building2 className="w-6 h-6" />, name: "Builders" },
               { icon: <Hammer className="w-6 h-6" />, name: "Roofers" },
               { icon: <Home className="w-6 h-6" />, name: "Homeowners" },
               { icon: <Truck className="w-6 h-6" />, name: "Logistics" }
             ].map((client, i) => (
-              <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-8 rounded-2xl bg-zinc-50 border border-zinc-100 text-center flex flex-col items-center gap-4">
+              <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-5 md:p-8 rounded-2xl bg-zinc-50 border border-zinc-100 text-center flex flex-col items-center gap-2 md:gap-4">
                 <div className="text-amber-600">{client.icon}</div>
                 <span className="font-black text-[13px] uppercase tracking-widest text-[#2a1c2f]">{client.name}</span>
               </motion.div>
@@ -214,12 +253,12 @@ export default function AboutPage() {
       </section>
 
       {/* GALLERY GRID */}
-      <section className="py-20 md:py-32 bg-zinc-50">
-        <div className="max-w-7xl mx-auto px-6 mb-12">
-          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block text-center md:text-left">Gallery</motion.span>
+      <section className="py-12 md:py-32 bg-zinc-50">
+        <div className="max-w-7xl mx-auto px-6 mb-6 md:mb-12">
+          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block text-center md:text-left">Gallery</motion.span>
           <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] text-center md:text-left">Real Jobs. <span className="text-amber-500">Real Results.</span></motion.h2>
         </div>
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           {galleryImages.map((src, i) => (
             <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.05 }} className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
               <Image src={src} alt="Crane Truck Job" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
@@ -229,19 +268,19 @@ export default function AboutPage() {
       </section>
 
       {/* CALL TO ACTION */}
-      <section className="py-20 md:py-32 bg-white">
+      <section className="py-12 md:py-32 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <motion.div {...snappyEntrance} className="inline-flex items-center gap-3 bg-zinc-100 px-4 py-2 rounded-full mb-8">
+          <motion.div {...snappyEntrance} className="inline-flex items-center gap-3 bg-zinc-100 px-4 py-2 rounded-full mb-5 md:mb-8">
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             <span className="text-[#2a1c2f] font-black text-[11px] uppercase tracking-[0.2em]">Contact Us</span>
           </motion.div>
-          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-3xl md:text-6xl font-black mb-8 tracking-tight uppercase text-[#2a1c2f] leading-tight text-balance">
+          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-3xl md:text-6xl font-black mb-5 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-tight text-balance">
             Talk Through Your Next Job With Us.
           </motion.h2>
-          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-500 text-base md:text-xl font-medium mb-12 leading-relaxed">
+          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-500 text-base md:text-xl font-medium mb-8 md:mb-12 leading-relaxed">
             We provide fast responses and clear communication for every project. Call us directly to discuss your requirements.
           </motion.p>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
             <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="w-full md:w-auto bg-[#2a1c2f] hover:bg-amber-500 hover:text-[#2a1c2f] text-white font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4">
               <Phone className="w-4 h-4" /> 0469 798 247
             </a>
@@ -253,9 +292,9 @@ export default function AboutPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="py-16 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
+      <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 md:gap-16 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 mb-10 md:mb-16">
             {/* Brand Section */}
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
@@ -294,7 +333,7 @@ export default function AboutPage() {
                 ].map((link, i) => (
                   <li key={i}>
                     <a 
-                      href={`/?service=${link.slug}#quote`}
+                      href="/services"
                       className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
@@ -355,7 +394,7 @@ export default function AboutPage() {
             <p>Since 2022</p>
             <p className="text-center">Copyright © 2026 Hariz Crane Trucks | All Rights Reserved</p>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
             </div>
           </div>
         </div>

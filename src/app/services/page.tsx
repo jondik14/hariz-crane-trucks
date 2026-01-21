@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Phone, CheckCircle2, ShieldCheck, ArrowRight, Zap, Truck, Box, Construction, Wrench, Weight, MapPin, Facebook, Instagram, Mail, ChevronRight as ChevronIcon } from "lucide-react";
+import { Phone, Check, CheckCircle2, ShieldCheck, ArrowRight, Zap, Truck, Box, Construction, Wrench, Weight, MapPin, Facebook, Instagram, Mail, X, Menu, ChevronRight as ChevronIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -32,6 +32,11 @@ const UrgentIcon = ({ className }: { className?: string }) => (
 
 export default function ServicesPage() {
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", service: "Crane Hire", message: "" });
+  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [formError, setFormError] = useState("");
+  const [selectedService, setSelectedService] = useState("Crane Hire");
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -39,6 +44,51 @@ export default function ServicesPage() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (mobileNavOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    const onResize = () => { if (window.innerWidth >= 768) setMobileNavOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => { document.body.style.overflow = ""; window.removeEventListener("resize", onResize); };
+  }, [mobileNavOpen]);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) {
+      setFormError("Please fill in all required fields.");
+      setFormStatus("error");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setFormError("Please enter a valid email address.");
+      setFormStatus("error");
+      return;
+    }
+    setFormStatus("loading");
+    setFormError("");
+    try {
+      const response = await fetch("https://formspree.io/f/xvzzozye", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ name: formData.name, phone: formData.phone, email: formData.email, _replyto: formData.email, service: formData.service, message: formData.message })
+      });
+      if (response.ok) {
+        setFormStatus("success");
+        setFormData({ name: "", phone: "", email: "", service: "Crane Hire", message: "" });
+        setSelectedService("Crane Hire");
+        if (typeof window !== "undefined" && window.gtag) window.gtag("event", "quote_submit", { service_type: formData.service });
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setFormError(data.error || "Something went wrong. Please try again.");
+        setFormStatus("error");
+      }
+    } catch {
+      setFormError("Network error. Please check your connection and try again.");
+      setFormStatus("error");
+    }
+  };
 
   // GA4 call click tracking
   const trackCallClick = () => {
@@ -61,7 +111,7 @@ export default function ServicesPage() {
       icon: <CraneIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Crane Hire", 
       desc: "Reliable lifting for residential and commercial construction. Safe, secure, and always on time.",
-      img: "/assets/IMG_8903.webp",
+      img: "/assets/IMG_9443.webp",
       tags: ["Sydney CBD", "Construction", "Narrow Access"],
       slug: "crane-hire"
     },
@@ -69,7 +119,7 @@ export default function ServicesPage() {
       icon: <TransportIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Machinery Transport", 
       desc: "Specialist plant and machinery transport. Balanced, secured, and delivered on schedule.",
-      img: "/assets/IMG_9190.webp",
+      img: "/assets/IMG_1795-scaled1767683885.webp",
       tags: ["Machinery", "Plant", "Secure Load"],
       slug: "machinery-transport"
     },
@@ -77,7 +127,7 @@ export default function ServicesPage() {
       icon: <ContainerIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Container Moves", 
       desc: "Fast lifting and relocation support. Precise placement with skilled operator control.",
-      img: "/assets/IMG_9199 (1).webp",
+      img: "/assets/IMG_1837-scaled1767683884.webp",
       tags: ["Containers", "Relocation", "20ft/40ft"],
       slug: "container-relocation"
     },
@@ -85,7 +135,7 @@ export default function ServicesPage() {
       icon: <MaterialIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Material Delivery", 
       desc: "Onsite delivery of steel, timber, frames and trusses. Efficient unloading and placement.",
-      img: "/assets/IMG_9430.webp",
+      img: "/assets/IMG_8938.webp",
       tags: ["Steel", "Timber", "Onsite"],
       slug: "material-delivery"
     },
@@ -93,7 +143,7 @@ export default function ServicesPage() {
       icon: <HeavyIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Heavy Loads", 
       desc: "Oversized and heavy loads transported with care. Route checks and insured delivery.",
-      img: "/assets/IMG_9214.webp",
+      img: "/assets/IMG_9433.webp",
       tags: ["Oversized", "Insured", "Escort Ready"],
       slug: "crane-hire"
     },
@@ -101,7 +151,7 @@ export default function ServicesPage() {
       icon: <UrgentIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Urgent Lifts", 
       desc: "Same-day urgent crane hire for critical projects. Rapid response 24/7 assistance.",
-      img: "/assets/IMG_9059.webp",
+      img: "/assets/21767683883.webp",
       tags: ["24/7", "Emergency", "Same Day"],
       slug: "urgent-lift"
     }
@@ -113,32 +163,60 @@ export default function ServicesPage() {
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
-          <div className="flex items-center gap-12">
-            <a href="/" className="transition-transform hover:scale-[1.02]">
+          <div className="flex items-center gap-4 md:gap-12">
+            <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileNavOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
             <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
               <a href="/about" className="hover:text-[#2a1c2f] transition-colors">About</a>
               <a href="/services" className="text-[#2a1c2f]">Services</a>
-              <a href="/#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
+              <a href="#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="hidden lg:flex items-center gap-4 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
               <div className="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-zinc-600" />
               </div>
               <span className="text-lg">0469 798 247</span>
             </a>
-            <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
+            <button type="button" aria-label="Open menu" onClick={() => setMobileNavOpen(true)} className="md:hidden w-11 h-11 rounded-xl bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors shrink-0">
+              <Menu className="w-5 h-5" />
+            </button>
+            <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-5 md:px-8 py-3 md:py-4 rounded-xl text-[10px] md:text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest shrink-0">
               Get Quote
             </a>
           </div>
         </div>
       </header>
 
+      {/* Mobile nav */}
+      <motion.div initial={false} animate={mobileNavOpen ? { opacity: 1, pointerEvents: "auto" } : { opacity: 0, pointerEvents: "none" }} transition={{ duration: 0.2 }} className="fixed inset-0 z-[60] md:hidden">
+        <div className="absolute inset-0 bg-[#2a1c2f]/90 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} aria-hidden="true" />
+        <motion.div initial={false} animate={mobileNavOpen ? { x: 0 } : { x: "100%" }} transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }} className="absolute top-0 right-0 bottom-0 w-[min(320px,85vw)] bg-white shadow-2xl flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-zinc-100">
+            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Menu</span>
+            <button type="button" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} className="w-10 h-10 rounded-lg bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-[#2a1c2f] transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <nav className="flex flex-col p-6 gap-1">
+            <a href="/about" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">About</a>
+            <a href="/services" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">Services</a>
+            <a href="#quote" onClick={() => setMobileNavOpen(false)} className="py-4 font-black text-[#2a1c2f] text-base uppercase tracking-wide hover:text-amber-500 transition-colors border-b border-zinc-100">Contact</a>
+          </nav>
+          <div className="mt-auto p-6 pt-4 space-y-4 border-t border-zinc-100">
+            <a href="tel:0469798247" onClick={() => { trackCallClick(); setMobileNavOpen(false); }} suppressHydrationWarning className="flex items-center gap-3 text-[#2a1c2f] font-black hover:text-amber-500 transition-colors">
+              <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center"><Phone className="w-4 h-4 text-zinc-600" /></div>
+              <span>0469 798 247</span>
+            </a>
+            <a href="#quote" onClick={() => setMobileNavOpen(false)} className="block w-full bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black py-4 rounded-xl text-[12px] uppercase tracking-widest text-center transition-all active:scale-[0.98]">Get Quote</a>
+          </div>
+        </motion.div>
+      </motion.div>
+
       {/* HERO SECTION */}
-      <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
+      <section className="relative pt-32 pb-14 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <Image src="/assets/IMG_9212.webp" alt="Services Background" fill className="object-cover grayscale" priority />
         </div>
@@ -153,8 +231,8 @@ export default function ServicesPage() {
         />
         
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Services</motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl md:text-7xl font-black mb-8 md:mb-10 tracking-tight uppercase leading-none max-w-4xl text-balance">
+          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-amber-400 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Our Services</motion.span>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-3xl md:text-7xl font-black mb-5 md:mb-10 tracking-tight uppercase leading-none max-w-4xl text-balance">
             Crane Truck Hire <span className="text-amber-500">& Transport.</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-zinc-300 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
@@ -164,25 +242,25 @@ export default function ServicesPage() {
       </section>
 
       {/* SERVICES GRID */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+      <section className="py-12 md:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-12">
           {services.map((s, i) => (
             <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="group flex flex-col h-full border border-zinc-100 rounded-[2rem] overflow-hidden hover:border-amber-400/50 hover:shadow-2xl transition-all duration-500">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Image src={s.img} alt={s.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700 grayscale-[0.5] group-hover:grayscale-0" />
-                <div className="absolute top-6 left-6 w-14 h-14 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-[#2a1c2f] shadow-xl group-hover:bg-amber-400 transition-colors">
+                <Image src={s.img} alt={s.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute top-4 left-4 md:top-6 md:left-6 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-[#2a1c2f] shadow-xl group-hover:bg-amber-400 transition-colors">
                   {s.icon}
                 </div>
               </div>
-              <div className="p-8 md:p-10 flex flex-col flex-grow bg-white">
-                <h3 className="text-xl md:text-2xl font-black mb-4 tracking-tight uppercase">{s.title}</h3>
-                <p className="text-zinc-500 font-medium leading-relaxed mb-8 flex-grow">{s.desc}</p>
-                <div className="flex flex-wrap gap-2 mb-8">
+              <div className="p-5 md:p-10 flex flex-col flex-grow bg-white">
+                <h3 className="text-xl md:text-2xl font-black mb-3 md:mb-4 tracking-tight uppercase">{s.title}</h3>
+                <p className="text-zinc-500 font-medium leading-relaxed mb-5 md:mb-8 flex-grow">{s.desc}</p>
+                <div className="flex flex-wrap gap-2 mb-5 md:mb-8">
                   {s.tags.map((tag, j) => (
-                    <span key={j} className="bg-zinc-50 text-zinc-400 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-zinc-100">{tag}</span>
+                    <span key={j} className="bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-amber-200">{tag}</span>
                   ))}
                 </div>
-                <a href={`/?service=${s.slug}#quote`} className="inline-flex items-center gap-3 text-amber-600 font-black uppercase tracking-widest text-[11px] group-hover:gap-5 transition-all">
+                <a href="#quote" className="inline-flex items-center gap-3 border-2 border-[#2a1c2f] text-[#2a1c2f] hover:bg-[#2a1c2f] hover:text-white font-black uppercase tracking-widest text-[11px] px-5 py-3 rounded-xl transition-all group-hover:gap-5">
                   Book Service <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -191,32 +269,86 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* CALL TO ACTION */}
-      <section className="py-20 md:py-32 bg-zinc-50 overflow-hidden relative border-t border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
-          <div className="lg:col-span-7">
-            <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-tight">Need a <br /> <span className="text-amber-500">Lifting Plan?</span></motion.h2>
-            <motion.p {...snappyEntrance} transition={{ delay: 0.1 }} className="text-zinc-600 text-base md:text-lg font-medium mb-10 md:mb-12 leading-relaxed max-w-xl">
-              Talk to us today for practical advice and upfront pricing. We handle everything from site checks to final delivery.
-            </motion.p>
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6">
-              <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center flex items-center justify-center gap-4">Get My Quote <ArrowRight className="w-4 h-4" /></a>
-              <div className="flex flex-col items-center md:items-start">
-                <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-1">Direct Call</p>
-                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-xl md:text-3xl font-black text-[#2a1c2f] hover:text-amber-500 transition-colors text-white">0469 798 247</a>
-              </div>
+      {/* GET YOUR QUOTE IN 15 MINS */}
+      <section id="quote" className="py-12 md:py-24 bg-zinc-50 border-t border-zinc-100 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center relative z-10">
+          <motion.div
+            className="lg:col-span-6"
+            initial={{ opacity: 0, x: isMobile ? 0 : -80, y: isMobile ? 80 : 0 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="bg-[#2a1c2f] p-6 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl text-white">
+              <h2 className="text-3xl md:text-5xl font-black mb-6 md:mb-10 tracking-tight uppercase leading-none text-balance">Get Your Quote <br /><span className="text-amber-500">In 15 Mins.</span></h2>
+
+              {formStatus === "success" ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black mb-4 uppercase">Quote Request Sent!</h3>
+                  <p className="text-zinc-400 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
+                  <button type="button" onClick={() => setFormStatus("idle")} className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-all uppercase tracking-widest">Send Another Quote</button>
+                </div>
+              ) : (
+                <form onSubmit={handleFormSubmit} className="space-y-5 md:space-y-4">
+                  {formStatus === "error" && formError && (
+                    <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-sm font-semibold">{formError}</div>
+                  )}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Full Name *</label>
+                    <input type="text" name="name" placeholder="John Smith" value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required disabled={formStatus === "loading"} />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-5 md:gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Telephone *</label>
+                      <input type="tel" name="phone" inputMode="tel" placeholder="0469 798 247" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required disabled={formStatus === "loading"} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Email *</label>
+                      <input type="email" name="email" placeholder="email@provider.com" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" required disabled={formStatus === "loading"} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
+                    <select name="service" value={formData.service} onChange={(e) => { setFormData(prev => ({ ...prev, service: e.target.value })); setSelectedService(e.target.value); }} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold appearance-none" disabled={formStatus === "loading"}>
+                      <option>Crane Hire</option>
+                      <option>Machinery Transport</option>
+                      <option>Container Relocation</option>
+                      <option>Material Delivery</option>
+                      <option>Urgent Lift</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Message</label>
+                    <textarea name="message" placeholder="Lift weight, dimensions, location..." rows={3} value={formData.message} onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))} className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold resize-none" disabled={formStatus === "loading"} />
+                  </div>
+                  <button type="submit" disabled={formStatus === "loading"} className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-500/50 disabled:cursor-not-allowed text-[#2a1c2f] font-black text-lg md:text-xl py-5 md:py-6 rounded-xl transition-all shadow-lg active:scale-95 disabled:active:scale-100 uppercase tracking-widest mt-4 min-h-[56px] flex items-center justify-center gap-3">
+                    {formStatus === "loading" ? (<><svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg> Sending...</>) : "Request Free Quote"}
+                  </button>
+                </form>
+              )}
             </div>
-          </div>
-          <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="lg:col-span-5 relative rounded-3xl overflow-hidden aspect-video lg:aspect-square shadow-2xl">
-            <Image src="/assets/IMG_9197.webp" alt="Contact Us" fill className="object-cover" />
+          </motion.div>
+          <motion.div className="lg:col-span-6 flex flex-col justify-center text-center lg:text-left" initial={{ opacity: 0, x: isMobile ? 0 : 80, y: isMobile ? 80 : 0 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}>
+            <span className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 block">Speak With Us</span>
+            <h3 className="text-2xl md:text-5xl font-black mb-4 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">Call Us <br className="hidden md:block" /> Directly.</h3>
+            <p className="text-zinc-500 text-[15px] md:text-xl font-medium mb-6 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0">Direct owner contact. <br className="md:hidden" /> Clear timelines, upfront pricing, and reliable service.</p>
+            <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-6 md:mb-12 block">0469 798 247</a>
+            <div className="space-y-3 md:space-y-4 text-[#2a1c2f] flex flex-col items-center lg:items-start mb-6 md:mb-8">
+              {["Free Quotes within 24 Hours", "Fully Licensed & Insured", "Available 24/7 for Emergencies"].map((t, i) => (
+                <div key={i} className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest"><CheckCircle2 className="w-4 h-4 text-green-500" /> {t}</div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-16 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
+      <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 md:gap-16 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 mb-10 md:mb-16">
             {/* Brand Section */}
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
@@ -255,7 +387,7 @@ export default function ServicesPage() {
                 ].map((link, i) => (
                   <li key={i}>
                     <a 
-                      href={`/?service=${link.slug}#quote`}
+                      href="/services"
                       className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
@@ -273,7 +405,7 @@ export default function ServicesPage() {
                 {[
                   { name: "About Us", href: "/about" },
                   { name: "Our Services", href: "/services" },
-                  { name: "Contact Us", href: "/#quote" }
+                  { name: "Contact Us", href: "#quote" }
                 ].map((link, i) => (
                   <li key={i}>
                     <a 
@@ -290,7 +422,7 @@ export default function ServicesPage() {
 
             {/* Contact Info */}
             <div className="lg:col-span-3 text-center md:text-left">
-              <a href="/#quote" className="inline-block bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 mb-10 w-full md:w-auto">
+              <a href="#quote" className="inline-block bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 mb-10 w-full md:w-auto">
                 Contact Us
               </a>
               <div className="space-y-6">
@@ -316,7 +448,7 @@ export default function ServicesPage() {
             <p>Since 2022</p>
             <p className="text-center">Copyright © 2026 Hariz Crane Trucks | All Rights Reserved</p>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
             </div>
           </div>
         </div>
@@ -325,7 +457,7 @@ export default function ServicesPage() {
       {/* MOBILE BAR */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-3">
         <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="flex-[1.5] bg-[#2a1c2f] text-white font-black py-4.5 rounded-xl flex items-center justify-center gap-3 shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px] border border-white/10 backdrop-blur-xl"><Phone className="w-4 h-4" /> Call Now</a>
-        <a href="/#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
+        <a href="#quote" className="flex-1 bg-amber-400 text-[#2a1c2f] font-black py-4.5 rounded-xl flex items-center justify-center shadow-2xl uppercase text-[11px] tracking-widest min-h-[56px]">Quote</a>
       </div>
     </div>
   );
