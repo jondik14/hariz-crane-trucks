@@ -84,6 +84,7 @@ export default function PrivacyPage() {
         </motion.div>
       </motion.div>
 
+      <main>
       {/* HERO */}
       <section className="pt-32 pb-10 md:pt-40 md:pb-14 bg-[#2a1c2f] text-white">
         <div className="max-w-3xl mx-auto px-6">
@@ -214,6 +215,7 @@ export default function PrivacyPage() {
           </ul>
         </div>
       </section>
+      </main>
 
       {/* FOOTER */}
       <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">

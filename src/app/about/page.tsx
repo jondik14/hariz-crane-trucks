@@ -126,10 +126,11 @@ export default function AboutPage() {
         </motion.div>
       </motion.div>
 
+      <main>
       {/* HERO SECTION */}
       <section className="relative pt-32 pb-14 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-40">
-          <Image src="/assets/contsurciton gravel 2.webp" alt="Background" fill className="object-cover" priority />
+          <Image src="/assets/contsurciton gravel 2.webp" alt="Background" fill className="object-cover" sizes="100vw" priority />
         </div>
         <div className="absolute inset-0 bg-[#2a1c2f]/85" />
         
@@ -290,6 +291,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* FOOTER */}
       <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">

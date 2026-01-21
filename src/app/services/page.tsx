@@ -215,10 +215,11 @@ export default function ServicesPage() {
         </motion.div>
       </motion.div>
 
+      <main>
       {/* HERO SECTION */}
       <section className="relative pt-32 pb-14 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <Image src="/assets/IMG_9212.webp" alt="Services Background" fill className="object-cover grayscale" priority />
+          <Image src="/assets/IMG_9212.webp" alt="Services Background" fill className="object-cover grayscale" sizes="100vw" priority />
         </div>
         <div className="absolute inset-0 bg-[#2a1c2f]/85" />
         
@@ -247,7 +248,7 @@ export default function ServicesPage() {
           {services.map((s, i) => (
             <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="group flex flex-col h-full border border-zinc-100 rounded-[2rem] overflow-hidden hover:border-amber-400/50 hover:shadow-2xl transition-all duration-500">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Image src={s.img} alt={s.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                <Image src={s.img} alt={s.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" loading="lazy" />
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-[#2a1c2f] shadow-xl group-hover:bg-amber-400 transition-colors">
                   {s.icon}
                 </div>
@@ -344,6 +345,7 @@ export default function ServicesPage() {
           </motion.div>
         </div>
       </section>
+      </main>
 
       {/* FOOTER */}
       <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">

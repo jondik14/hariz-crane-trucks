@@ -28,115 +28,19 @@ import {
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
-import { useState, useRef, useEffect, Suspense, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, Environment, ContactShadows, Center } from "@react-three/drei";
-import * as THREE from "three";
+import { useState, useRef, useEffect, Suspense } from "react";
 
-function TruckModel({ scale = 18 }: { scale?: number }) {
-  const { scene } = useGLTF("/assets/models/crane truck 3d model.glb");
-  const truckRef = useRef<THREE.Group>(null);
-  
-  // Find crane parts
-  const craneParts = useMemo(() => {
-    const parts: { [key: string]: THREE.Object3D } = {};
-    scene.traverse((obj) => {
-      const name = obj.name.toLowerCase();
-      // Target the crane arm and its rotation pivot
-      if (name.includes('crane') || name.includes('arm') || name.includes('boom') || name.includes('joint') || name.includes('hydraul')) {
-        parts[obj.name] = obj;
-      }
-    });
-    return parts;
-  }, [scene]);
-
-  useFrame((state) => {
-    if (!truckRef.current) return;
-    
-    const time = state.clock.elapsedTime;
-    
-    // Gentle hover and slow rotation - always centered
-    truckRef.current.position.y = Math.sin(time * 1.5) * 0.15;
-    truckRef.current.rotation.y = time * 0.15; // Slow continuous rotation
-    
-    // Subtle crane animation
-    Object.values(craneParts).forEach((part) => {
-      const name = part.name.toLowerCase();
-      
-      // Lift the crane arms gently
-      if (name.includes('arm') || name.includes('boom')) {
-        const lift = Math.sin(time * 0.5) * 0.15;
-        part.rotation.x = -Math.abs(lift);
-      }
-      
-      // Subtle base pivot
-      if (name.includes('joint') || name.includes('pivot') || name.includes('base')) {
-        part.rotation.y = Math.sin(time * 0.4) * 0.1;
-      }
-    });
-  });
-
-  return (
-    <Center>
-      <primitive 
-        ref={truckRef} 
-        object={scene} 
-        scale={scale} 
-        rotation={[0.15, -0.5, 0]} 
-      />
-    </Center>
-  );
-}
-
-// Main 3D Section for Fleet
-function TruckScene() {
-  const [isMobileView, setIsMobileView] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  return (
-    <div className="w-full h-full min-h-[360px] md:min-h-[380px] relative overflow-visible">
-      {/* Yellow radial glow behind the truck - more visible */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background: `
-            radial-gradient(ellipse 70% 60% at 50% 50%, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.12) 35%, transparent 65%),
-            radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251, 191, 36, 0.15) 0%, transparent 60%)
-          `
-        }}
-      />
-      <Suspense fallback={
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
-        </div>
-      }>
-        <Canvas 
-          shadows 
-          camera={{ 
-            position: isMobileView ? [0, 7, 28] : [0, 12, 50], 
-            fov: isMobileView ? 36 : 30 
-          }} 
-          className="!w-full !h-full"
-          style={{ position: 'absolute', inset: 0, zIndex: 1 }}
-        >
-          <ambientLight intensity={1.5} />
-          <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />
-          <directionalLight position={[-15, 15, 10]} intensity={1.5} />
-          <TruckModel scale={isMobileView ? 16 : 18} />
-          <Environment preset="city" />
-        </Canvas>
-      </Suspense>
+const TruckScene = dynamic(() => import("@/components/TruckScene"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full min-h-[360px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+      <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+      <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
     </div>
-  );
-}
+  ),
+});
 
 /**
  * MOBILE-FIRST DESIGN SYSTEM (Applied 2026 Polish)
@@ -184,7 +88,6 @@ function LandingContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
@@ -323,33 +226,24 @@ function LandingContent() {
     };
   }, [mobileNavOpen]);
 
-  // Handle video loading and content sequence
+  // Handle video and content: show hero text quickly for LCP, video when ready
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
 
-    const handleCanPlay = () => {
-      setVideoLoaded(true);
-      // Small delay before showing content for smooth sequence
-      setTimeout(() => setContentReady(true), 200);
-    };
+    const showContent = () => setContentReady(true);
 
-    // If video is already loaded (cached)
-    if (video.readyState >= 3) {
-      handleCanPlay();
-    } else {
-      video.addEventListener('canplay', handleCanPlay);
+    if (video && video.readyState >= 3) {
+      showContent();
+      return;
     }
+    if (video) video.addEventListener('canplay', showContent);
 
-    // Fallback: show content after 3 seconds even if video hasn't loaded
-    const fallbackTimer = setTimeout(() => {
-      setVideoLoaded(true);
-      setContentReady(true);
-    }, 3000);
+    // LCP: show hero text by 600ms even if video is slow (e.g. Slow 4G)
+    const fallback = setTimeout(showContent, 600);
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-      clearTimeout(fallbackTimer);
+      if (video) video.removeEventListener('canplay', showContent);
+      clearTimeout(fallback);
     };
   }, []);
 
@@ -597,42 +491,25 @@ function LandingContent() {
         </motion.div>
       </motion.div>
 
+      <main>
       {/* 2. HERO */}
       <section className="relative min-h-[500px] h-[70vh] md:min-h-[600px] md:h-[90vh] flex items-center justify-center overflow-hidden bg-[#2a1c2f]">
-        {/* Branded loading background - shown while video loads */}
-        <div 
-          className={`absolute inset-0 z-0 transition-opacity duration-1000 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
-          style={{
-            background: `
-              radial-gradient(ellipse 80% 50% at 50% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 60%),
-              linear-gradient(180deg, #1a1020 0%, #2a1c2f 50%, #1a1020 100%)
-            `
-          }}
-        >
-          {/* Animated loading indicator */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-amber-500/20 rounded-full" />
-              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-amber-500 rounded-full animate-spin" />
-            </div>
-            <p className="mt-6 text-amber-500/60 font-black text-[11px] uppercase tracking-[0.3em]">Loading</p>
-          </div>
-        </div>
-        
-        {/* Video with fade-in */}
+        {/* Video: poster shows immediately for LCP; video plays when loaded */}
         <video 
           ref={videoRef}
           autoPlay 
           muted 
           loop 
           playsInline 
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          poster="/assets/hero/hero-poster.webp"
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover z-0"
         >
           <source src="/assets/hariz hero video.mp4" type="video/mp4" />
         </video>
         
-        {/* Slightly deeper purple overlay for brand depth and text legibility */}
-        <div className={`absolute inset-0 bg-[#2a1c2f]/55 z-10 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`} />
+        {/* Overlay for text legibility — visible when content is shown */}
+        <div className={`absolute inset-0 bg-[#2a1c2f]/55 z-10 transition-opacity duration-500 ${contentReady ? 'opacity-100' : 'opacity-0'}`} />
         
         {/* Content with sequenced entrance */}
         <div className="relative z-20 w-full max-w-5xl px-6 text-center text-white drop-shadow-2xl">
@@ -692,7 +569,8 @@ function LandingContent() {
                   width={1200}
                   height={900}
                   className="w-full h-auto transition-transform duration-1000 group-hover:scale-105" 
-                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  loading="lazy"
                 />
               </div>
             </motion.div>
@@ -746,7 +624,7 @@ function LandingContent() {
             fill 
             className="object-cover" 
             sizes="100vw"
-            priority
+            loading="lazy"
           />
           {/* Dark overlay for text legibility */}
           <div className="absolute inset-0 bg-[#2a1c2f]/60" />
@@ -954,9 +832,9 @@ function LandingContent() {
       {/* AREAS WE SERVICE */}
       <section ref={mapRef} onMouseMove={handleMouseMove} onMouseEnter={() => setIsHoveringMap(true)} onMouseLeave={() => setIsHoveringMap(false)} className="relative py-10 md:py-32 bg-white overflow-hidden">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
-          <Image src="/assets/Snazzy maps 2.svg" alt="Sydney Map Base" fill className="object-cover opacity-10 grayscale" priority />
+          <Image src="/assets/Snazzy maps 2.svg" alt="Sydney Map Base" fill className="object-cover opacity-10 grayscale" sizes="100vw" loading="lazy" />
           <motion.div className="absolute inset-0 z-10" initial={{ opacity: 0 }} animate={{ opacity: isHoveringMap ? 1 : 0 }} transition={{ duration: 0.4 }} style={{ maskImage, WebkitMaskImage: maskImage, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}>
-            <Image src="/assets/Snazzy maps yellow.svg" alt="Sydney Map Yellow" fill className="object-cover" priority />
+            <Image src="/assets/Snazzy maps yellow.svg" alt="Sydney Map Yellow" fill className="object-cover" sizes="100vw" loading="lazy" />
           </motion.div>
         </div>
 
@@ -1224,6 +1102,7 @@ function LandingContent() {
           </motion.div>
         </div>
       </section>
+      </main>
 
       {/* 8. FOOTER */}
       <footer className="py-12 md:py-24 bg-[#2a1c2f] text-white border-t border-white/5 pb-32 md:pb-16">
