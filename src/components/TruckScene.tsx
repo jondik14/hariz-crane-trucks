@@ -4,16 +4,19 @@ import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, Environment, Center } from "@react-three/drei";
 import * as THREE from "three";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-function TruckModel({ scale = 18 }: { scale?: number }) {
-  const { scene } = useGLTF("/assets/models/crane truck 3d model.glb");
+const GLB_PATH = "/assets/models/crane-truck-3d-model.glb";
+
+function TruckModel() {
+  const { scene } = useGLTF(GLB_PATH);
   const truckRef = useRef<THREE.Group>(null);
 
   const craneParts = useMemo(() => {
-    const parts: { [key: string]: THREE.Object3D } = {};
+    const parts: Record<string, THREE.Object3D> = {};
     scene.traverse((obj) => {
-      const name = obj.name.toLowerCase();
-      if (name.includes("crane") || name.includes("arm") || name.includes("boom") || name.includes("joint") || name.includes("hydraul")) {
+      const n = obj.name.toLowerCase();
+      if (n.includes("crane") || n.includes("arm") || n.includes("boom") || n.includes("joint") || n.includes("hydraul")) {
         parts[obj.name] = obj;
       }
     });
@@ -22,47 +25,38 @@ function TruckModel({ scale = 18 }: { scale?: number }) {
 
   useFrame((state) => {
     if (!truckRef.current) return;
-    const time = state.clock.elapsedTime;
-    truckRef.current.position.y = Math.sin(time * 1.5) * 0.15;
-    truckRef.current.rotation.y = time * 0.15;
+    const t = state.clock.elapsedTime;
+    truckRef.current.position.y = Math.sin(t * 1.5) * 0.15;
+    truckRef.current.rotation.y = t * 0.15;
     Object.values(craneParts).forEach((part) => {
-      const name = part.name.toLowerCase();
-      if (name.includes("arm") || name.includes("boom")) {
-        const lift = Math.sin(time * 0.5) * 0.15;
-        part.rotation.x = -Math.abs(lift);
-      }
-      if (name.includes("joint") || name.includes("pivot") || name.includes("base")) {
-        part.rotation.y = Math.sin(time * 0.4) * 0.1;
-      }
+      const n = part.name.toLowerCase();
+      if (n.includes("arm") || n.includes("boom")) part.rotation.x = -Math.abs(Math.sin(t * 0.5) * 0.15);
+      if (n.includes("joint") || n.includes("pivot") || n.includes("base")) part.rotation.y = Math.sin(t * 0.4) * 0.1;
     });
   });
 
   return (
     <Center>
-      <primitive ref={truckRef} object={scene} scale={scale} rotation={[0.15, -0.5, 0]} />
+      <primitive ref={truckRef} object={scene} scale={18} rotation={[0.15, -0.5, 0]} />
     </Center>
   );
 }
 
-export default function TruckScene() {
-  const [isMobileView, setIsMobileView] = useState(false);
-
+function TruckSceneInner() {
+  const [mobile, setMobile] = useState(false);
   useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const fn = () => setMobile(window.innerWidth < 1024);
+    fn();
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
   }, []);
 
   return (
-    <div className="w-full h-full min-h-[360px] md:min-h-[380px] relative overflow-visible">
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible">
       <div
         className="absolute inset-0 pointer-events-none z-0"
         style={{
-          background: `
-            radial-gradient(ellipse 70% 60% at 50% 50%, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0.12) 35%, transparent 65%),
-            radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251, 191, 36, 0.15) 0%, transparent 60%)
-          `,
+          background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(245,158,11,0.25) 0%, rgba(245,158,11,0.12) 35%, transparent 65%), radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251,191,36,0.15) 0%, transparent 60%)",
         }}
       />
       <Suspense
@@ -75,20 +69,31 @@ export default function TruckScene() {
       >
         <Canvas
           shadows
-          camera={{
-            position: isMobileView ? [0, 7, 28] : [0, 12, 50],
-            fov: isMobileView ? 36 : 30,
-          }}
-          className="!w-full !h-full"
+          camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
+          className="w-full h-full"
           style={{ position: "absolute", inset: 0, zIndex: 1 }}
         >
           <ambientLight intensity={1.5} />
           <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />
           <directionalLight position={[-15, 15, 10]} intensity={1.5} />
-          <TruckModel scale={isMobileView ? 16 : 18} />
+          <TruckModel />
           <Environment preset="city" />
         </Canvas>
       </Suspense>
     </div>
+  );
+}
+
+const Fallback = () => (
+  <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+    <p className="text-[#2a1c2f]/50 font-black uppercase tracking-widest text-[11px]">Fleet view unavailable</p>
+  </div>
+);
+
+export default function TruckScene() {
+  return (
+    <ErrorBoundary fallback={<Fallback />}>
+      <TruckSceneInner />
+    </ErrorBoundary>
   );
 }
