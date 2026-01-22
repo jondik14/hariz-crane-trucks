@@ -8,6 +8,11 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const GLB_PATH = "/assets/models/crane-truck-3d-model.glb";
 
+// Preload the model for faster loading
+if (typeof window !== "undefined") {
+  useGLTF.preload(GLB_PATH);
+}
+
 function TruckModel() {
   const { scene } = useGLTF(GLB_PATH);
   const truckRef = useRef<THREE.Group>(null);
@@ -68,16 +73,18 @@ function TruckSceneInner() {
         }
       >
         <Canvas
-          shadows
+          shadows={!mobile}
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
           style={{ position: "absolute", inset: 0, zIndex: 1 }}
+          dpr={mobile ? [1, 1.5] : [1, 2]}
+          performance={{ min: mobile ? 0.5 : 0.75 }}
         >
-          <ambientLight intensity={1.5} />
-          <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />
-          <directionalLight position={[-15, 15, 10]} intensity={1.5} />
+          <ambientLight intensity={mobile ? 1.8 : 1.5} />
+          {!mobile && <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />}
+          <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.2 : 1.5} />
           <TruckModel />
-          <Environment preset="city" />
+          <Environment preset={mobile ? "sunset" : "city"} />
         </Canvas>
       </Suspense>
     </div>

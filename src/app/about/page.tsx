@@ -17,6 +17,8 @@ import {
   Facebook,
   Instagram,
   Mail,
+  Menu,
+  X,
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -24,6 +26,16 @@ import { useEffect, useState } from "react";
 
 export default function AboutPage() {
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // GA4 call click tracking
+  const trackCallClick = () => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "call_click", {
+        phone_number: "0469798247"
+      });
+    }
+  };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -64,7 +76,7 @@ export default function AboutPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <a href="/" className="transition-transform hover:scale-[1.02]">
+            <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileMenuOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
             <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
@@ -80,11 +92,70 @@ export default function AboutPage() {
               </div>
               <span className="text-lg">0469 798 247</span>
             </a>
-            <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center text-[#2a1c2f] hover:bg-amber-500 hover:text-white transition-all"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <a href="/#quote" className="hidden md:block bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
               Get Quote
             </a>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-zinc-100 shadow-lg"
+          >
+            <nav className="px-4 py-6 space-y-4">
+              <a
+                href="/about"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                About
+              </a>
+              <a
+                href="/services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                Services
+              </a>
+              <a
+                href="/#quote"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                Contact
+              </a>
+              <a
+                href="tel:0469798247"
+                onClick={() => {
+                  trackCallClick();
+                  setMobileMenuOpen(false);
+                }}
+                suppressHydrationWarning
+                className="block py-3 px-4 bg-amber-500 text-[#2a1c2f] font-black uppercase tracking-widest text-[11px] rounded-xl text-center hover:bg-amber-600 transition-colors"
+              >
+                Call: 0469 798 247
+              </a>
+              <a
+                href="/#quote"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 bg-[#2a1c2f] text-white font-black uppercase tracking-widest text-[11px] rounded-xl text-center hover:bg-[#3a2c3f] transition-colors"
+              >
+                Get Quote
+              </a>
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       {/* HERO SECTION */}
@@ -270,10 +341,10 @@ export default function AboutPage() {
                 </button>
               </div>
               <div className="flex gap-4">
-                <a href="https://www.facebook.com/profile.php?id=61581433108075" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
+                <a href="https://www.facebook.com/profile.php?id=61581433108075" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
                   <Facebook className="w-5 h-5" />
                 </a>
-                <a href="https://www.instagram.com/harizcranetrucks/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
+                <a href="https://www.instagram.com/harizcranetrucks/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram page" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
                   <Instagram className="w-5 h-5" />
                 </a>
               </div>
@@ -295,7 +366,7 @@ export default function AboutPage() {
                   <li key={i}>
                     <a 
                       href={`/?service=${link.slug}#quote`}
-                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
+                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-300 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
                       {link.name}
@@ -317,7 +388,7 @@ export default function AboutPage() {
                   <li key={i}>
                     <a 
                       href={link.href}
-                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
+                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-300 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
                       {link.name}
@@ -343,7 +414,7 @@ export default function AboutPage() {
                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <span className="text-zinc-400 hover:text-white transition-colors font-bold text-sm truncate">info@harizcranetrucks.com.au</span>
+                  <span className="text-zinc-300 hover:text-white transition-colors font-bold text-sm truncate">info@harizcranetrucks.com.au</span>
                 </a>
               </div>
             </div>
@@ -351,7 +422,7 @@ export default function AboutPage() {
 
           <div className="w-full h-px bg-white/5 mb-10" />
           
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] font-bold text-zinc-300 uppercase tracking-widest">
             <p>Since 2022</p>
             <p className="text-center">Copyright © 2026 Hariz Crane Trucks | All Rights Reserved</p>
             <div className="flex gap-8">

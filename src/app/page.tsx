@@ -19,6 +19,7 @@ import {
   MapPin,
   Users,
   X,
+  Menu,
   ChevronLeft,
   ChevronRight,
   Facebook,
@@ -89,6 +90,7 @@ function LandingContent() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -408,7 +410,7 @@ function LandingContent() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <a href="/" className="transition-transform hover:scale-[1.02]">
+            <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileMenuOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
             <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
@@ -424,11 +426,70 @@ function LandingContent() {
               </div>
               <span className="text-lg">0469 798 247</span>
             </a>
-            <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center text-[#2a1c2f] hover:bg-amber-500 hover:text-white transition-all"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <a href="#quote" className="hidden md:block bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 md:px-8 py-3.5 md:py-4 rounded-xl text-[11px] transition-all shadow-md active:scale-95 uppercase tracking-widest">
               Get Quote
             </a>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-zinc-100 shadow-lg"
+          >
+            <nav className="px-4 py-6 space-y-4">
+              <a
+                href="/about"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                About
+              </a>
+              <a
+                href="/services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                Services
+              </a>
+              <a
+                href="#quote"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 font-black text-[#2a1c2f] uppercase tracking-widest text-[11px] hover:bg-amber-50 rounded-xl transition-colors"
+              >
+                Contact
+              </a>
+              <a
+                href="tel:0469798247"
+                onClick={() => {
+                  trackCallClick();
+                  setMobileMenuOpen(false);
+                }}
+                suppressHydrationWarning
+                className="block py-3 px-4 bg-amber-500 text-[#2a1c2f] font-black uppercase tracking-widest text-[11px] rounded-xl text-center hover:bg-amber-600 transition-colors"
+              >
+                Call: 0469 798 247
+              </a>
+              <a
+                href="#quote"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 bg-[#2a1c2f] text-white font-black uppercase tracking-widest text-[11px] rounded-xl text-center hover:bg-[#3a2c3f] transition-colors"
+              >
+                Get Quote
+              </a>
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       <main>
@@ -647,7 +708,7 @@ function LandingContent() {
                 { label: "Capacity", val: "4.3T @ 4.5m" }
               ].map((spec, i) => (
                 <div key={i} className="bg-zinc-50 p-3 md:p-4 rounded-xl border border-zinc-100">
-                  <p className="text-[9px] md:text-[10px] font-black text-zinc-400 mb-0.5 md:mb-1 uppercase tracking-widest">{spec.label}</p>
+                  <p className="text-[9px] md:text-[10px] font-black text-zinc-600 mb-0.5 md:mb-1 uppercase tracking-widest">{spec.label}</p>
                   <p className="text-base md:text-lg font-black text-[#2a1c2f] uppercase">{spec.val}</p>
                 </div>
               ))}
@@ -824,7 +885,7 @@ function LandingContent() {
                 ))}
               </div>
               <div className="mt-6 md:mt-12 pt-5 md:pt-8 border-t border-zinc-100 text-center md:text-left">
-                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-400">
+                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-600">
                   Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
                 </p>
               </div>
@@ -845,7 +906,7 @@ function LandingContent() {
           <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black tracking-tight uppercase leading-[1.1] text-center md:text-left">
             Client <span className="text-amber-500">Feedback</span>
           </motion.h2>
-          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-400 font-medium mt-4 text-[15px] md:text-base text-center md:text-left max-w-xl mx-auto md:mx-0">Trusted by Sydney builders and homeowners.</motion.p>
+          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-600 font-medium mt-4 text-[15px] md:text-base text-center md:text-left max-w-xl mx-auto md:mx-0">Trusted by Sydney builders and homeowners.</motion.p>
         </div>
 
         <div className="flex whitespace-nowrap overflow-hidden relative">
@@ -868,7 +929,7 @@ function LandingContent() {
                   </div>
                   <div>
                     <p className="font-black text-[12px] uppercase tracking-wide">{t.name}</p>
-                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">{t.role}</p>
+                    <p className="text-zinc-300 font-bold uppercase tracking-widest text-[10px]">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -924,7 +985,7 @@ function LandingContent() {
                     <Check className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-black mb-4 uppercase">Quote Request Sent!</h3>
-                  <p className="text-zinc-400 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
+                  <p className="text-zinc-600 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
                   <button 
                     onClick={() => setFormStatus("idle")}
                     className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-all uppercase tracking-widest"
@@ -982,8 +1043,9 @@ function LandingContent() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
+                    <label htmlFor="service-select" className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
                     <select 
+                      id="service-select"
                       name="service"
                       value={formData.service}
                       onChange={(e) => {
@@ -1066,10 +1128,10 @@ function LandingContent() {
                 </button>
               </div>
               <div className="flex gap-4">
-                <a href="https://www.facebook.com/profile.php?id=61581433108075" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
+                <a href="https://www.facebook.com/profile.php?id=61581433108075" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
                   <Facebook className="w-5 h-5" />
                 </a>
-                <a href="https://www.instagram.com/harizcranetrucks/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
+                <a href="https://www.instagram.com/harizcranetrucks/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram page" className="w-12 h-12 bg-white/5 hover:bg-amber-500 hover:text-[#2a1c2f] border border-white/10 rounded-full flex items-center justify-center transition-all">
                   <Instagram className="w-5 h-5" />
                 </a>
               </div>
@@ -1091,7 +1153,7 @@ function LandingContent() {
                   <li key={i}>
                     <a 
                       href={`/?service=${link.slug}#quote`}
-                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
+                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-300 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
                       {link.name}
@@ -1113,7 +1175,7 @@ function LandingContent() {
                   <li key={i}>
                     <a 
                       href={link.href}
-                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-400 hover:text-white transition-colors text-[13px] font-bold"
+                      className="group flex items-center justify-center md:justify-start gap-3 text-zinc-300 hover:text-white transition-colors text-[13px] font-bold"
                     >
                       <ChevronIcon className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
                       {link.name}
@@ -1139,7 +1201,7 @@ function LandingContent() {
                   <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-[#2a1c2f] transition-all">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <span className="text-zinc-400 hover:text-white transition-colors font-bold text-sm truncate">info@harizcranetrucks.com.au</span>
+                  <span className="text-zinc-300 hover:text-white transition-colors font-bold text-sm truncate">info@harizcranetrucks.com.au</span>
                 </a>
               </div>
             </div>
@@ -1147,7 +1209,7 @@ function LandingContent() {
 
           <div className="w-full h-px bg-white/5 mb-10" />
           
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] font-bold text-zinc-300 uppercase tracking-widest">
             <p>Since 2022</p>
             <p className="text-center">Copyright © 2026 Hariz Crane Trucks | All Rights Reserved</p>
             <div className="flex gap-8">
