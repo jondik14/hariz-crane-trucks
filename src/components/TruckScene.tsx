@@ -57,9 +57,9 @@ function TruckSceneInner() {
   }, []);
 
   return (
-    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible">
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible bg-zinc-50 rounded-2xl">
       <div
-        className="absolute inset-0 pointer-events-none z-0"
+        className="absolute inset-0 pointer-events-none z-0 rounded-2xl"
         style={{
           background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(245,158,11,0.25) 0%, rgba(245,158,11,0.12) 35%, transparent 65%), radial-gradient(ellipse 50% 40% at 50% 55%, rgba(251,191,36,0.15) 0%, transparent 60%)",
         }}

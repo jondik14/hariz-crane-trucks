@@ -44,15 +44,6 @@ export default function AboutPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // GA4 call click tracking
-  const trackCallClick = () => {
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "call_click", {
-        phone_number: "0469798247"
-      });
-    }
-  };
-
   const snappyEntrance = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },

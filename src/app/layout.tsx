@@ -32,6 +32,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preload LCP image for faster loading */}
+        <link
+          rel="preload"
+          href="/assets/IMG_9208.webp"
+          as="image"
+          fetchPriority="high"
+        />
+        {/* DNS prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+      </head>
       <body suppressHydrationWarning>
         <GoogleAnalytics />
         {children}

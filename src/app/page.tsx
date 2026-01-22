@@ -213,10 +213,10 @@ function LandingContent() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // LCP: show hero content quickly; do not wait for video
+  // LCP: show hero content immediately for better LCP
   useEffect(() => {
-    const t = setTimeout(() => setContentReady(true), 100);
-    return () => clearTimeout(t);
+    // Set content ready immediately on mount for faster LCP
+    setContentReady(true);
   }, []);
 
   // Defer video load until idle or 1.5s so it does not block LCP
@@ -396,8 +396,26 @@ function LandingContent() {
     "Greater Sydney", "Regional NSW"
   ];
 
+  // Defer animations to reduce TBT - only animate after initial render
+  const [animationsEnabled, setAnimationsEnabled] = useState(false);
+  
+  useEffect(() => {
+    // Enable animations after initial render to reduce TBT
+    const timer = requestIdleCallback 
+      ? requestIdleCallback(() => setAnimationsEnabled(true), { timeout: 1000 })
+      : setTimeout(() => setAnimationsEnabled(true), 1000);
+    
+    return () => {
+      if (typeof cancelIdleCallback !== "undefined" && typeof timer === "number") {
+        cancelIdleCallback(timer);
+      } else if (typeof timer === "number") {
+        clearTimeout(timer);
+      }
+    };
+  }, []);
+
   const snappyEntrance = {
-    initial: { opacity: 0, y: 20 },
+    initial: animationsEnabled ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: "-48px" },
     transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
@@ -498,11 +516,13 @@ function LandingContent() {
         {/* LCP: poster image (priority, not lazy) — visible until video plays */}
         <Image
           src="/assets/IMG_9208.webp"
-          alt=""
+          alt="Hariz Transport crane truck"
           fill
           className={`object-cover object-[center_28%] z-0 transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`}
           sizes="100vw"
           priority
+          quality={85}
+          fetchPriority="high"
         />
         {/* Video: mounted after requestIdleCallback or 1.5s; playsInline + muted for mobile autoplay */}
         {showVideo && (
@@ -690,8 +710,13 @@ function LandingContent() {
       {/* 4. FLEET — 3D loaded only when in view to reduce main-thread work */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
-          <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative aspect-square w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none">
-            {fleetInView ? <FleetSection /> : <div className="min-h-[320px] md:min-h-[380px] bg-zinc-50 rounded-2xl" />}
+          <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
+            {fleetInView ? <FleetSection /> : <div className="w-full h-full min-h-[320px] md:min-h-[380px] bg-zinc-50 rounded-2xl flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
+                <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
+              </div>
+            </div>}
           </motion.div>
           <div className="lg:col-span-6">
             <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>
