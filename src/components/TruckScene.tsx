@@ -8,9 +8,13 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const GLB_PATH = "/assets/models/crane-truck-3d-model.glb";
 
-// Preload the model for faster loading
+// Preload the model immediately when module loads (not just on component mount)
 if (typeof window !== "undefined") {
+  // Start preloading as early as possible
   useGLTF.preload(GLB_PATH);
+  
+  // Also prefetch the file via link tag (handled in layout.tsx)
+  // This ensures the browser starts downloading immediately
 }
 
 function TruckModel() {
@@ -77,14 +81,16 @@ function TruckSceneInner() {
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
           style={{ position: "absolute", inset: 0, zIndex: 1 }}
-          dpr={mobile ? [1, 1.5] : [1, 2]}
-          performance={{ min: mobile ? 0.5 : 0.75 }}
+          dpr={mobile ? [1, 1.2] : [1, 1.5]}
+          performance={{ min: mobile ? 0.3 : 0.5 }}
+          gl={{ antialias: !mobile, powerPreference: "high-performance" }}
         >
-          <ambientLight intensity={mobile ? 1.8 : 1.5} />
+          <ambientLight intensity={mobile ? 2 : 1.5} />
           {!mobile && <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />}
-          <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.2 : 1.5} />
+          <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.5 : 1.5} />
           <TruckModel />
-          <Environment preset={mobile ? "sunset" : "city"} />
+          {/* Use simpler environment on mobile, or none at all for faster loading */}
+          {!mobile && <Environment preset="city" />}
         </Canvas>
       </Suspense>
     </div>

@@ -47,7 +47,15 @@ Create a `.env.local` file in the root directory (optional):
 ```env
 # Google Analytics (optional - site works without it)
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+# Microsoft Clarity (optional - site works without it)
+NEXT_PUBLIC_CLARITY_ID=your-project-id
 ```
+
+To get your Clarity project ID:
+1. Go to your Clarity project in the Microsoft Clarity dashboard
+2. Navigate to **Settings** → **Overview**
+3. Copy your **Project ID**
 
 **Note:** The quote form is pre-configured to submit to Formspree and email `info@harizcranetrucks.com.au`. No environment variables are required for the form to work.
 
@@ -84,6 +92,7 @@ git push -u origin main
    - **Output Directory**: `.next` (auto-detected)
 5. Add environment variables (optional):
    - `NEXT_PUBLIC_GA_ID` = Your Google Analytics Measurement ID
+   - `NEXT_PUBLIC_CLARITY_ID` = Your Microsoft Clarity Project ID
 6. Click **"Deploy"**
 
 ### Step 3: Configure Domain (Optional)
@@ -108,7 +117,8 @@ git push -u origin main
 │   │   ├── layout.tsx    # Root layout
 │   │   └── page.tsx      # Homepage
 │   └── components/
-│       └── GoogleAnalytics.tsx
+│       ├── GoogleAnalytics.tsx
+│       └── MicrosoftClarity.tsx
 ├── next.config.ts
 ├── package.json
 └── tailwind.config.ts

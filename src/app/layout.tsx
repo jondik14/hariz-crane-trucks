@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 
 export const metadata: Metadata = {
   title: "Hariz Transport | Crane Trucks & Heavy Haulage",
@@ -40,12 +41,21 @@ export default function RootLayout({
           as="image"
           fetchPriority="high"
         />
+        {/* Preload 3D model for faster loading */}
+        <link
+          rel="preload"
+          href="/assets/models/crane-truck-3d-model.glb"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
         {/* DNS prefetch for external resources */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body suppressHydrationWarning>
         <GoogleAnalytics />
+        <MicrosoftClarity />
         {children}
       </body>
     </html>

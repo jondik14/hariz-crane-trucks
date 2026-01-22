@@ -95,7 +95,8 @@ function LandingContent() {
   const quoteRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fleetRef = useRef<HTMLDivElement>(null);
-  const fleetInView = useInView(fleetRef, { once: true, margin: "100px" });
+  // Start loading earlier - reduce margin so it triggers sooner
+  const fleetInView = useInView(fleetRef, { once: true, margin: "200px" });
   
   // Form state
   const [formData, setFormData] = useState({
@@ -217,6 +218,24 @@ function LandingContent() {
   useEffect(() => {
     // Set content ready immediately on mount for faster LCP
     setContentReady(true);
+  }, []);
+
+  // Preload 3D model early (start downloading before user scrolls to it)
+  useEffect(() => {
+    // Start preloading the 3D model after page load to improve perceived performance
+    const preloadModel = () => {
+      // Import and preload the GLB file
+      if (typeof window !== "undefined") {
+        // Use dynamic import to start loading the GLB file
+        import("@react-three/drei").then((drei) => {
+          drei.useGLTF.preload("/assets/models/crane-truck-3d-model.glb");
+        });
+      }
+    };
+    
+    // Start preloading after a short delay to not block initial page load
+    const timer = setTimeout(preloadModel, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Defer video load until idle or 1.5s so it does not block LCP
