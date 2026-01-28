@@ -43,13 +43,16 @@ export default function RootLayout({
           as="image"
           fetchPriority="high"
         />
-        {/* Preload 3D model for faster loading */}
+        {/* Preload 3D model for faster loading - high priority */}
         <link
           rel="preload"
           href="/assets/models/crane-truck-3d-model.glb"
           as="fetch"
           crossOrigin="anonymous"
+          fetchPriority="high"
         />
+        {/* Preconnect to improve loading */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
         {/* DNS prefetch for external resources */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
@@ -57,7 +60,18 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ErrorLogger />
-        <ErrorBoundary>
+        <ErrorBoundary fallback={
+          <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white">
+            <h1 className="text-2xl font-black text-[#2a1c2f] mb-4">Something went wrong</h1>
+            <p className="text-zinc-600 mb-6 text-center">Please refresh the page to try again.</p>
+            <button 
+              onClick={() => typeof window !== "undefined" && window.location.reload()} 
+              className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-colors"
+            >
+              Refresh Page
+            </button>
+          </div>
+        }>
           <GoogleAnalytics />
           <MicrosoftClarity />
           {children}

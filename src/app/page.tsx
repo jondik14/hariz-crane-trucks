@@ -31,6 +31,7 @@ import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { useState, useRef, useEffect, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const FleetSection = dynamic(() => import("@/components/TruckScene"), {
   ssr: false,
@@ -76,9 +77,29 @@ const UrgentIcon = ({ className }: { className?: string }) => (
 
 export default function LandingPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LandingContent />
-    </Suspense>
+    <ErrorBoundary fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white">
+        <h1 className="text-2xl font-black text-[#2a1c2f] mb-4">Something went wrong</h1>
+        <p className="text-zinc-600 mb-6 text-center">Please refresh the page to try again.</p>
+        <button 
+          onClick={() => typeof window !== "undefined" && window.location.reload()} 
+          className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-colors"
+        >
+          Refresh Page
+        </button>
+      </div>
+    }>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
+            <p className="text-[#2a1c2f] font-black uppercase tracking-widest text-[11px]">Loading...</p>
+          </div>
+        </div>
+      }>
+        <LandingContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
@@ -101,24 +122,42 @@ function LandingContent() {
   useEffect(() => {
     if (typeof window === "undefined" || !fleetRef.current) return;
     
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setFleetInView(true);
-        }
-      },
-      { rootMargin: "200px", threshold: 0.1 }
-    );
-    
-    if (fleetRef.current) {
-      observer.observe(fleetRef.current);
+    // Check if IntersectionObserver is supported
+    if (typeof IntersectionObserver === "undefined") {
+      // Fallback: show fleet section after a delay if IntersectionObserver not available
+      const timer = setTimeout(() => setFleetInView(true), 1000);
+      return () => clearTimeout(timer);
     }
     
-    return () => {
+    try {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            setFleetInView(true);
+          }
+        },
+        { rootMargin: "400px", threshold: 0.01 } // Larger margin to start loading much earlier
+      );
+      
       if (fleetRef.current) {
-        observer.unobserve(fleetRef.current);
+        observer.observe(fleetRef.current);
       }
-    };
+      
+      return () => {
+        if (fleetRef.current) {
+          try {
+            observer.unobserve(fleetRef.current);
+          } catch (e) {
+            // Ignore errors during cleanup
+          }
+        }
+        observer.disconnect();
+      };
+    } catch (error) {
+      // Fallback if IntersectionObserver fails
+      console.warn("IntersectionObserver failed, showing fleet section:", error);
+      setFleetInView(true);
+    }
   }, []);
   
   // Form state
@@ -233,20 +272,47 @@ function LandingContent() {
     setHasMounted(true);
     if (typeof window === "undefined") return;
     
-    // Use matchMedia for better mobile detection
-    const mediaQuery = window.matchMedia("(max-width: 1024px)");
-    const checkMobile = () => {
-      setIsMobile(mediaQuery.matches || window.innerWidth < 1024);
-    };
-    
-    checkMobile();
-    mediaQuery.addEventListener("change", checkMobile);
-    window.addEventListener("resize", checkMobile);
-    
-    return () => {
-      mediaQuery.removeEventListener("change", checkMobile);
-      window.removeEventListener("resize", checkMobile);
-    };
+    // Use matchMedia for better mobile detection with error handling
+    let mediaQuery: MediaQueryList | null = null;
+    try {
+      mediaQuery = window.matchMedia("(max-width: 1024px)");
+      const checkMobile = () => {
+        if (typeof window !== "undefined") {
+          setIsMobile(mediaQuery ? (mediaQuery.matches || window.innerWidth < 1024) : window.innerWidth < 1024);
+        }
+      };
+      
+      checkMobile();
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", checkMobile);
+      } else if (mediaQuery.addListener) {
+        // Fallback for older browsers
+        mediaQuery.addListener(checkMobile);
+      }
+      window.addEventListener("resize", checkMobile);
+      
+      return () => {
+        if (mediaQuery) {
+          if (mediaQuery.removeEventListener) {
+            mediaQuery.removeEventListener("change", checkMobile);
+          } else if (mediaQuery.removeListener) {
+            mediaQuery.removeListener(checkMobile);
+          }
+        }
+        window.removeEventListener("resize", checkMobile);
+      };
+    } catch (error) {
+      // Fallback if matchMedia fails
+      console.warn("matchMedia failed, using window.innerWidth:", error);
+      const checkMobile = () => {
+        if (typeof window !== "undefined") {
+          setIsMobile(window.innerWidth < 1024);
+        }
+      };
+      checkMobile();
+      window.addEventListener("resize", checkMobile);
+      return () => window.removeEventListener("resize", checkMobile);
+    }
   }, []);
 
   // LCP: show hero content immediately for better LCP
@@ -255,22 +321,33 @@ function LandingContent() {
     setContentReady(true);
   }, []);
 
-  // Preload 3D model early (start downloading before user scrolls to it)
+  // Preload 3D model immediately on mount for faster loading
   useEffect(() => {
-    // Start preloading the 3D model after page load to improve perceived performance
+    if (typeof window === "undefined") return;
+    
+    // Start preloading the 3D model immediately
     const preloadModel = () => {
-      // Import and preload the GLB file
-      if (typeof window !== "undefined") {
+      try {
         // Use dynamic import to start loading the GLB file
         import("@react-three/drei").then((drei) => {
-          drei.useGLTF.preload("/assets/models/crane-truck-3d-model.glb");
+          if (drei.useGLTF?.preload) {
+            drei.useGLTF.preload("/assets/models/crane-truck-3d-model.glb");
+          }
+        }).catch((error) => {
+          console.warn("Failed to preload 3D model:", error);
         });
+      } catch (error) {
+        console.warn("Error setting up 3D model preload:", error);
       }
     };
     
-    // Start preloading after a short delay to not block initial page load
-    const timer = setTimeout(preloadModel, 500);
-    return () => clearTimeout(timer);
+    // Start preloading immediately, but use requestIdleCallback if available to not block critical rendering
+    if (typeof window.requestIdleCallback !== "undefined") {
+      window.requestIdleCallback(preloadModel, { timeout: 100 });
+    } else {
+      // Fallback: start immediately but on next tick
+      setTimeout(preloadModel, 0);
+    }
   }, []);
 
   // Defer video load until idle or 1.5s so it does not block LCP

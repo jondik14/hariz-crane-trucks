@@ -54,13 +54,20 @@ function TruckSceneInner() {
     
     setMounted(true);
     
-    // Preload the model
-    useGLTF.preload(GLB_PATH);
+    // Preload the model with error handling (may already be preloaded from page.tsx)
+    try {
+      // Check if already preloaded to avoid duplicate requests
+      if (typeof useGLTF.preload === "function") {
+        useGLTF.preload(GLB_PATH);
+      }
+    } catch (error) {
+      console.warn("Failed to preload 3D model:", error);
+    }
     
     // Check WebGL support
     try {
       const canvas = document.createElement("canvas");
-      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl") || canvas.getContext("webgl2");
       if (!gl) {
         setWebglSupported(false);
         return;
@@ -71,25 +78,50 @@ function TruckSceneInner() {
     }
 
     // Use matchMedia for better mobile detection (more reliable than innerWidth)
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const checkMobile = () => {
-      if (typeof window !== "undefined") {
-        setMobile(mediaQuery.matches || window.innerWidth < 1024);
+    let mediaQuery: MediaQueryList | null = null;
+    try {
+      mediaQuery = window.matchMedia("(max-width: 768px)");
+      const checkMobile = () => {
+        if (typeof window !== "undefined" && mediaQuery) {
+          setMobile(mediaQuery.matches || window.innerWidth < 1024);
+        }
+      };
+      
+      checkMobile();
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", checkMobile);
+      } else {
+        // Fallback for older browsers
+        mediaQuery.addListener(checkMobile);
       }
-    };
-    
-    checkMobile();
-    mediaQuery.addEventListener("change", checkMobile);
-    if (typeof window !== "undefined") {
+      if (typeof window !== "undefined") {
+        window.addEventListener("resize", checkMobile);
+      }
+      
+      return () => {
+        if (mediaQuery) {
+          if (mediaQuery.removeEventListener) {
+            mediaQuery.removeEventListener("change", checkMobile);
+          } else {
+            mediaQuery.removeListener(checkMobile);
+          }
+        }
+        if (typeof window !== "undefined") {
+          window.removeEventListener("resize", checkMobile);
+        }
+      };
+    } catch (error) {
+      // Fallback if matchMedia fails
+      console.warn("matchMedia failed, using window.innerWidth:", error);
+      const checkMobile = () => {
+        if (typeof window !== "undefined") {
+          setMobile(window.innerWidth < 1024);
+        }
+      };
+      checkMobile();
       window.addEventListener("resize", checkMobile);
+      return () => window.removeEventListener("resize", checkMobile);
     }
-    
-    return () => {
-      mediaQuery.removeEventListener("change", checkMobile);
-      if (typeof window !== "undefined") {
-        window.removeEventListener("resize", checkMobile);
-      }
-    };
   }, []);
 
   // If WebGL is not supported, show fallback image
@@ -120,7 +152,7 @@ function TruckSceneInner() {
       />
       <Suspense
         fallback={
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
             <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
           </div>
@@ -136,12 +168,14 @@ function TruckSceneInner() {
           gl={{ 
             antialias: !mobile, 
             powerPreference: "high-performance",
-            alpha: false,
+            alpha: false, // Opaque background to show zinc-50
             stencil: false,
             depth: true,
             failIfMajorPerformanceCaveat: false
           }}
-          onCreated={({ gl }) => {
+          onCreated={({ gl, scene }) => {
+            // Set clear color to match zinc-50 background (0xfafafa = rgb(250, 250, 250))
+            gl.setClearColor(0xfafafa, 1);
             // Optimize for mobile
             if (mobile) {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
@@ -152,8 +186,12 @@ function TruckSceneInner() {
           {!mobile && <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />}
           <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.5 : 1.5} />
           <TruckModel />
-          {/* Disable environment on mobile for better performance */}
-          {!mobile && <Environment preset="city" />}
+          {/* Use simpler environment on mobile, full environment on desktop */}
+          {mobile ? (
+            <Environment preset="sunset" />
+          ) : (
+            <Environment preset="city" />
+          )}
         </Canvas>
       </Suspense>
     </div>

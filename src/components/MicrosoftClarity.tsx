@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect } from "react";
-import Clarity from "@microsoft/clarity";
 
 export function MicrosoftClarity() {
   const projectId = process.env.NEXT_PUBLIC_CLARITY_ID;
 
   useEffect(() => {
     // Don't initialize if no project ID is configured
-    if (!projectId) {
+    if (!projectId || typeof window === "undefined") {
       return;
     }
 
-    // Initialize Clarity with the project ID
-    Clarity.init(projectId);
+    // Initialize Clarity with error handling
+    try {
+      // Dynamic import to avoid SSR issues
+      import("@microsoft/clarity").then((Clarity) => {
+        if (Clarity.default?.init) {
+          Clarity.default.init(projectId);
+        }
+      }).catch((error) => {
+        console.warn("Failed to load Microsoft Clarity:", error);
+      });
+    } catch (error) {
+      console.warn("Error initializing Microsoft Clarity:", error);
+    }
   }, [projectId]);
-
-  // Don't render anything if no project ID is configured
-  if (!projectId) {
-    return null;
-  }
 
   return null;
 }
