@@ -8,14 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const GLB_PATH = "/assets/models/crane-truck-3d-model.glb";
 
-// Preload the model immediately when module loads (not just on component mount)
-if (typeof window !== "undefined") {
-  // Start preloading as early as possible
-  useGLTF.preload(GLB_PATH);
-  
-  // Also prefetch the file via link tag (handled in layout.tsx)
-  // This ensures the browser starts downloading immediately
-}
+// Preload will be handled in useEffect to avoid SSR issues
 
 function TruckModel() {
   const { scene } = useGLTF(GLB_PATH);
@@ -53,12 +46,69 @@ function TruckModel() {
 
 function TruckSceneInner() {
   const [mobile, setMobile] = useState(false);
+  const [webglSupported, setWebglSupported] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    const fn = () => setMobile(window.innerWidth < 1024);
-    fn();
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
+    if (typeof window === "undefined") return;
+    
+    setMounted(true);
+    
+    // Preload the model
+    useGLTF.preload(GLB_PATH);
+    
+    // Check WebGL support
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!gl) {
+        setWebglSupported(false);
+        return;
+      }
+    } catch (e) {
+      setWebglSupported(false);
+      return;
+    }
+
+    // Use matchMedia for better mobile detection (more reliable than innerWidth)
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const checkMobile = () => {
+      if (typeof window !== "undefined") {
+        setMobile(mediaQuery.matches || window.innerWidth < 1024);
+      }
+    };
+    
+    checkMobile();
+    mediaQuery.addEventListener("change", checkMobile);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", checkMobile);
+    }
+    
+    return () => {
+      mediaQuery.removeEventListener("change", checkMobile);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("resize", checkMobile);
+      }
+    };
   }, []);
+
+  // If WebGL is not supported, show fallback image
+  if (!mounted) {
+    return (
+      <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
+      </div>
+    );
+  }
+
+  if (!webglSupported) {
+    return (
+      <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+        <p className="text-[#2a1c2f]/50 font-black uppercase tracking-widest text-[11px]">3D view unavailable</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible bg-zinc-50 rounded-2xl">
@@ -81,15 +131,28 @@ function TruckSceneInner() {
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
           style={{ position: "absolute", inset: 0, zIndex: 1 }}
-          dpr={mobile ? [1, 1.2] : [1, 1.5]}
-          performance={{ min: mobile ? 0.3 : 0.5 }}
-          gl={{ antialias: !mobile, powerPreference: "high-performance" }}
+          dpr={mobile ? [1, 1.25] : [1, 1.5]}
+          performance={{ min: mobile ? 0.25 : 0.5 }}
+          gl={{ 
+            antialias: !mobile, 
+            powerPreference: "high-performance",
+            alpha: false,
+            stencil: false,
+            depth: true,
+            failIfMajorPerformanceCaveat: false
+          }}
+          onCreated={({ gl }) => {
+            // Optimize for mobile
+            if (mobile) {
+              gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+            }
+          }}
         >
           <ambientLight intensity={mobile ? 2 : 1.5} />
           {!mobile && <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />}
           <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.5 : 1.5} />
           <TruckModel />
-          {/* Use simpler environment on mobile, or none at all for faster loading */}
+          {/* Disable environment on mobile for better performance */}
           {!mobile && <Environment preset="city" />}
         </Canvas>
       </Suspense>

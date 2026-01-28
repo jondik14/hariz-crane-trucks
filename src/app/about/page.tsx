@@ -38,10 +38,22 @@ export default function AboutPage() {
   };
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    if (typeof window === "undefined") return;
+    
+    // Use matchMedia for better mobile detection
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    const checkMobile = () => {
+      setIsMobile(mediaQuery.matches || window.innerWidth < 1024);
+    };
+    
     checkMobile();
+    mediaQuery.addEventListener("change", checkMobile);
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    
+    return () => {
+      mediaQuery.removeEventListener("change", checkMobile);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
   const snappyEntrance = {
@@ -176,7 +188,7 @@ export default function AboutPage() {
       </section>
 
       {/* CORE PILLARS */}
-      <section className="py-12 md:py-16 bg-white border-b border-zinc-100">
+      <section className="pt-12 md:pt-16 pb-8 md:pb-10 bg-white border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {[
             { icon: <ShieldCheck className="w-6 h-6" />, label: "Protection", value: "Fully Insured" },
@@ -197,7 +209,7 @@ export default function AboutPage() {
       </section>
 
       {/* HOW WE WORK */}
-      <section className="py-20 md:py-32 bg-white">
+      <section className="pt-12 md:pt-16 pb-20 md:pb-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <div className="lg:col-span-6">
             <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Process</motion.span>
@@ -221,8 +233,15 @@ export default function AboutPage() {
               </div>
             </motion.div>
           </div>
-          <motion.div {...snappyEntrance} transition={{ delay: 0.3 }} className="lg:col-span-6 relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl">
-            <Image src="/assets/services moving car.webp" alt="Planning a lift" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
+          <motion.div {...snappyEntrance} transition={{ delay: 0.3 }} className="lg:col-span-6 rounded-3xl overflow-hidden shadow-2xl bg-zinc-100 w-full">
+            <Image 
+              src="/assets/services moving car.webp" 
+              alt="Planning a lift" 
+              width={1200}
+              height={900}
+              className="w-full h-auto rounded-3xl" 
+              sizes="(max-width: 1024px) 100vw, 50vw" 
+            />
           </motion.div>
         </div>
       </section>
@@ -239,36 +258,13 @@ export default function AboutPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { title: "Fully Insured", desc: "Public liability and goods in transit insurance for your peace of mind." },
+              { title: "Fully Insured", desc: "Goods are covered under public liability and transit insurance for your peace of mind." },
               { title: "Certified Gear", desc: "Our crane and truck undergo regular maintenance and inspections." },
               { title: "Licensed Team", desc: "All operators are fully licensed and trained for technical lifts." }
             ].map((item, i) => (
               <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-8 rounded-2xl bg-white/5 border border-white/10">
                 <h3 className="text-lg font-black mb-3 uppercase text-amber-500">{item.title}</h3>
                 <p className="text-sm md:text-base text-zinc-400 font-medium">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WHO WE WORK WITH */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Clients</motion.span>
-            <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f]">Supporting Local Trades</motion.h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: <Building2 className="w-6 h-6" />, name: "Builders" },
-              { icon: <Hammer className="w-6 h-6" />, name: "Roofers" },
-              { icon: <Home className="w-6 h-6" />, name: "Homeowners" },
-              { icon: <Truck className="w-6 h-6" />, name: "Logistics" }
-            ].map((client, i) => (
-              <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="p-8 rounded-2xl bg-zinc-50 border border-zinc-100 text-center flex flex-col items-center gap-4">
-                <div className="text-amber-600">{client.icon}</div>
-                <span className="font-black text-[13px] uppercase tracking-widest text-[#2a1c2f]">{client.name}</span>
               </motion.div>
             ))}
           </div>

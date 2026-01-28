@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/MicrosoftClarity";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorLogger } from "@/components/ErrorLogger";
 
 export const metadata: Metadata = {
   title: "Hariz Transport | Crane Trucks & Heavy Haulage",
@@ -54,9 +56,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body suppressHydrationWarning>
-        <GoogleAnalytics />
-        <MicrosoftClarity />
-        {children}
+        <ErrorLogger />
+        <ErrorBoundary>
+          <GoogleAnalytics />
+          <MicrosoftClarity />
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

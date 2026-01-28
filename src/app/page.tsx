@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform, useInView } from "framer-motion";
+import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { useState, useRef, useEffect, Suspense } from "react";
 
 const FleetSection = dynamic(() => import("@/components/TruckScene"), {
@@ -95,8 +95,31 @@ function LandingContent() {
   const quoteRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fleetRef = useRef<HTMLDivElement>(null);
-  // Start loading earlier - reduce margin so it triggers sooner
-  const fleetInView = useInView(fleetRef, { once: true, margin: "200px" });
+  const [fleetInView, setFleetInView] = useState(false);
+  
+  // Use IntersectionObserver manually to avoid SSR issues
+  useEffect(() => {
+    if (typeof window === "undefined" || !fleetRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setFleetInView(true);
+        }
+      },
+      { rootMargin: "200px", threshold: 0.1 }
+    );
+    
+    if (fleetRef.current) {
+      observer.observe(fleetRef.current);
+    }
+    
+    return () => {
+      if (fleetRef.current) {
+        observer.unobserve(fleetRef.current);
+      }
+    };
+  }, []);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -208,10 +231,22 @@ function LandingContent() {
 
   useEffect(() => {
     setHasMounted(true);
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    if (typeof window === "undefined") return;
+    
+    // Use matchMedia for better mobile detection
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    const checkMobile = () => {
+      setIsMobile(mediaQuery.matches || window.innerWidth < 1024);
+    };
+    
     checkMobile();
+    mediaQuery.addEventListener("change", checkMobile);
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    
+    return () => {
+      mediaQuery.removeEventListener("change", checkMobile);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
   // LCP: show hero content immediately for better LCP
@@ -255,10 +290,37 @@ function LandingContent() {
     if (!showVideo) return;
     const v = videoRef.current;
     if (!v) return;
-    const onCanPlay = () => setVideoLoaded(true);
-    if (v.readyState >= 3) onCanPlay();
-    else v.addEventListener("canplay", onCanPlay);
-    return () => v.removeEventListener("canplay", onCanPlay);
+    
+    // Try to play video, handle autoplay failures
+    const playPromise = v.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay failed (common on mobile), keep showing poster
+        console.warn("Video autoplay failed, showing poster image");
+        setVideoLoaded(false);
+      });
+    }
+    
+    const onCanPlay = () => {
+      setVideoLoaded(true);
+    };
+    
+    const onError = () => {
+      // Video failed to load, keep poster visible
+      setVideoLoaded(false);
+    };
+    
+    if (v.readyState >= 3) {
+      onCanPlay();
+    } else {
+      v.addEventListener("canplay", onCanPlay);
+      v.addEventListener("error", onError);
+    }
+    
+    return () => {
+      v.removeEventListener("canplay", onCanPlay);
+      v.removeEventListener("error", onError);
+    };
   }, [showVideo]);
 
   useEffect(() => {
@@ -552,7 +614,16 @@ function LandingContent() {
             loop
             playsInline
             preload="metadata"
+            poster="/assets/IMG_9208.webp"
             className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
+            onError={(e) => {
+              // If video fails to load, keep showing poster image
+              console.warn("Video failed to load, showing poster image");
+              setVideoLoaded(false);
+            }}
+            onCanPlay={() => {
+              setVideoLoaded(true);
+            }}
           >
             <source src="/assets/hariz hero video.mp4" type="video/mp4" />
           </video>

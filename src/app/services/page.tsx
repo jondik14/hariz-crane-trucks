@@ -35,10 +35,22 @@ export default function ServicesPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    if (typeof window === "undefined") return;
+    
+    // Use matchMedia for better mobile detection
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    const checkMobile = () => {
+      setIsMobile(mediaQuery.matches || window.innerWidth < 1024);
+    };
+    
     checkMobile();
+    mediaQuery.addEventListener("change", checkMobile);
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    
+    return () => {
+      mediaQuery.removeEventListener("change", checkMobile);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
   // GA4 call click tracking
@@ -62,7 +74,7 @@ export default function ServicesPage() {
       icon: <CraneIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Crane Hire", 
       desc: "Reliable lifting for residential and commercial construction. Safe, secure, and always on time.",
-      img: "/assets/IMG_9443.webp",
+      img: "/assets/21767683883.webp",
       tags: ["Sydney CBD", "Construction", "Narrow Access"],
       slug: "crane-hire"
     },
@@ -78,7 +90,7 @@ export default function ServicesPage() {
       icon: <ContainerIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Container Moves", 
       desc: "Fast lifting and relocation support. Precise placement with skilled operator control.",
-      img: "/assets/IMG_1837-scaled1767683884.webp",
+      img: "/assets/IMG_9433.webp",
       tags: ["Containers", "Relocation", "20ft/40ft"],
       slug: "container-relocation"
     },
@@ -94,7 +106,7 @@ export default function ServicesPage() {
       icon: <HeavyIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Heavy Loads", 
       desc: "Oversized and heavy loads transported with care. Route checks and insured delivery.",
-      img: "/assets/IMG_9433.webp",
+      img: "/assets/IMG_1837-scaled1767683884.webp",
       tags: ["Oversized", "Insured", "Escort Ready"],
       slug: "crane-hire"
     },
@@ -102,7 +114,7 @@ export default function ServicesPage() {
       icon: <UrgentIcon className="w-8 h-8 md:w-10 md:h-10" />, 
       title: "Urgent Lifts", 
       desc: "Same-day urgent crane hire for critical projects. Rapid response 24/7 assistance.",
-      img: "/assets/21767683883.webp",
+      img: "/assets/gallery/gallery-4.webp",
       tags: ["24/7", "Emergency", "Same Day"],
       slug: "urgent-lift"
     }
@@ -263,7 +275,7 @@ export default function ServicesPage() {
               <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center flex items-center justify-center gap-4">Get My Quote <ArrowRight className="w-4 h-4" /></a>
               <div className="flex flex-col items-center md:items-start">
                 <p className="text-[11px] font-black text-zinc-300 uppercase tracking-widest mb-1">Direct Call</p>
-                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-xl md:text-3xl font-black text-white hover:text-amber-500 transition-colors">0469 798 247</a>
+                <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-xl md:text-3xl font-black text-[#2a1c2f] hover:text-amber-500 transition-colors">0469 798 247</a>
               </div>
             </div>
           </div>
