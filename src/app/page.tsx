@@ -28,8 +28,16 @@ import {
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useState, useRef, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+const TruckScene = dynamic(() => import("@/components/TruckScene").then((m) => m.default), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl bg-[#fafafa] animate-pulse" aria-hidden="true" />
+  ),
+});
 
 /**
  * MOBILE-FIRST DESIGN SYSTEM (Applied 2026 Polish)
@@ -117,19 +125,18 @@ export default function LandingPage() {
 function LandingContent() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
-  /* Assume mobile until we know otherwise — prevents 3D from ever mounting on phones (avoids crash) */
   const [isMobile, setIsMobile] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  /** On mobile, mount 3D fleet only after requestIdleCallback so initial paint is fast. */
+  const [showFleet3D, setShowFleet3D] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fleetRef = useRef<HTMLDivElement>(null);
-  // Show 3D fleet on page load immediately (no scroll delay) so it loads with the page
-  const [fleetInView] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -283,18 +290,33 @@ function LandingContent() {
     }
   }, []);
 
-  // Defer video load until idle — skip video on mobile to avoid memory/decode crashes
+  // Defer video until idle (all devices). requestIdleCallback is polyfilled in ClientPolyfills for Safari.
   useEffect(() => {
-    if (isMobile) return;
     const fallback = setTimeout(() => setShowVideo(true), 1500);
-    const id = typeof requestIdleCallback !== "undefined"
-      ? requestIdleCallback(() => { setShowVideo(true); clearTimeout(fallback); }, { timeout: 1400 })
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(() => { setShowVideo(true); clearTimeout(fallback); }, { timeout: 1400 })
       : 0;
     return () => {
       clearTimeout(fallback);
-      if (typeof cancelIdleCallback !== "undefined" && id) cancelIdleCallback(id);
+      if (id && window.cancelIdleCallback) window.cancelIdleCallback(id);
     };
-  }, [isMobile]);
+  }, []);
+
+  // On mobile, mount 3D fleet only after idle so initial paint is fast; desktop can show immediately.
+  useEffect(() => {
+    if (!hasMounted || !isMobile) {
+      if (!isMobile) setShowFleet3D(true);
+      return;
+    }
+    const fallback = setTimeout(() => setShowFleet3D(true), 2000);
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(() => { setShowFleet3D(true); clearTimeout(fallback); }, { timeout: 1800 })
+      : 0;
+    return () => {
+      clearTimeout(fallback);
+      if (id && window.cancelIdleCallback) window.cancelIdleCallback(id);
+    };
+  }, [hasMounted, isMobile]);
 
   // When deferred video is mounted and can play, show it and hide poster
   useEffect(() => {
@@ -495,17 +517,13 @@ function LandingContent() {
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
   
   useEffect(() => {
-    // Enable animations after initial render to reduce TBT
-    const timer = requestIdleCallback 
-      ? requestIdleCallback(() => setAnimationsEnabled(true), { timeout: 1000 })
-      : setTimeout(() => setAnimationsEnabled(true), 1000);
-    
+    const fallback = setTimeout(() => setAnimationsEnabled(true), 1000);
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(() => { setAnimationsEnabled(true); clearTimeout(fallback); }, { timeout: 1000 })
+      : 0;
     return () => {
-      if (typeof cancelIdleCallback !== "undefined" && typeof timer === "number") {
-        cancelIdleCallback(timer);
-      } else if (typeof timer === "number") {
-        clearTimeout(timer);
-      }
+      clearTimeout(fallback);
+      if (id && window.cancelIdleCallback) window.cancelIdleCallback(id);
     };
   }, []);
 
@@ -619,8 +637,8 @@ function LandingContent() {
           quality={85}
           fetchPriority="high"
         />
-        {/* Video: desktop only (mobile gets poster only to avoid memory/decode crashes) */}
-        {showVideo && !isMobile && (
+        {/* Video: all devices. iOS autoplay requires playsInline + muted + autoPlay; MP4/H.264 first for Safari. */}
+        {showVideo && (
           <video
             ref={videoRef}
             autoPlay
@@ -630,9 +648,7 @@ function LandingContent() {
             preload="metadata"
             poster="/assets/IMG_9208.webp"
             className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
-            onError={(e) => {
-              // If video fails to load, keep showing poster image
-              console.warn("Video failed to load, showing poster image");
+            onError={() => {
               setVideoLoaded(false);
             }}
             onCanPlay={() => {
@@ -811,19 +827,23 @@ function LandingContent() {
         </div>
       </section>
 
-      {/* 4. FLEET — static image only (3D removed to test mobile crash fix) */}
+      {/* 4. FLEET — 3D on desktop immediately; on mobile after requestIdleCallback. Fallback = static image. */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
             <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl overflow-hidden bg-[#fafafa] relative">
-              <Image
-                src="/assets/IMG_9208.webp"
-                alt="Hariz crane truck"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 350px, 400px"
-                priority={false}
-              />
+              {showFleet3D ? (
+                <TruckScene />
+              ) : (
+                <Image
+                  src="/assets/IMG_9208.webp"
+                  alt="Hariz crane truck"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 350px, 400px"
+                  priority={false}
+                />
+              )}
             </div>
           </motion.div>
           <div className="lg:col-span-6">

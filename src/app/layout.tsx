@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ClientPolyfills } from "@/app/ClientPolyfills";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -36,19 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preload LCP image for faster loading */}
+        {/* Preload LCP image only; GLB/video not preloaded to avoid "preloaded but not used" on mobile (lazy-loaded after paint). */}
         <link
           rel="preload"
           href="/assets/IMG_9208.webp"
           as="image"
-          fetchPriority="high"
-        />
-        {/* Preload 3D model for faster loading - high priority */}
-        <link
-          rel="preload"
-          href="/assets/models/crane-truck-3d-model.glb"
-          as="fetch"
-          crossOrigin="anonymous"
           fetchPriority="high"
         />
         {/* Preconnect to improve loading */}
@@ -59,6 +52,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body suppressHydrationWarning>
+        <ClientPolyfills />
         <ErrorLogger />
         <ErrorBoundary fallback={null}>
           <GoogleAnalytics />
