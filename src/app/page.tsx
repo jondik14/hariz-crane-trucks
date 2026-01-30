@@ -27,9 +27,8 @@ import {
   Mail,
   ChevronRight as ChevronIcon
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 /**
@@ -64,13 +63,6 @@ const UrgentIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m11.5 20l4.86-9.73H13V4l-5 9.73h3.5zM12 2c2.75 0 5.1 1 7.05 2.95S22 9.25 22 12s-1 5.1-2.95 7.05S14.75 22 12 22s-5.1-1-7.05-2.95S2 14.75 2 12s1-5.1 2.95-7.05S9.25 2 12 2"></path></svg>
 );
 
-/** Wrapper that reads search params and passes to content. Isolated so useSearchParams() cannot crash the whole page on mobile. */
-function PageWithSearchParams() {
-  const searchParams = useSearchParams();
-  const preselectedService = searchParams.get("service");
-  return <LandingContent preselectedService={preselectedService} />;
-}
-
 export default function LandingPage() {
   return (
     <ErrorBoundary fallback={
@@ -85,18 +77,12 @@ export default function LandingPage() {
         </button>
       </div>
     }>
-      <Suspense fallback={<LandingContent />}>
-        <ErrorBoundary fallback={<LandingContent />}>
-          <PageWithSearchParams />
-        </ErrorBoundary>
-      </Suspense>
+      <LandingContent />
     </ErrorBoundary>
   );
 }
 
-type LandingContentProps = { preselectedService?: string | null };
-
-function LandingContent({ preselectedService: preselectedServiceProp }: LandingContentProps) {
+function LandingContent() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   /* Assume mobile until we know otherwise — prevents 3D from ever mounting on phones (avoids crash) */
@@ -132,7 +118,6 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
 
   const maskImage = useMotionTemplate`radial-gradient(300px circle at ${springX}px ${springY}px, black 0%, transparent 100%)`;
 
-  const preselectedService = preselectedServiceProp ?? null;
   const [selectedService, setSelectedService] = useState("Crane Hire");
   
   // Form submission handler
@@ -273,8 +258,9 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
     setContentReady(true);
   }, []);
 
-  // Defer video load until idle so it does not block LCP
+  // Defer video load until idle — skip video on mobile to avoid memory/decode crashes
   useEffect(() => {
+    if (isMobile) return;
     const fallback = setTimeout(() => setShowVideo(true), 1500);
     const id = typeof requestIdleCallback !== "undefined"
       ? requestIdleCallback(() => { setShowVideo(true); clearTimeout(fallback); }, { timeout: 1400 })
@@ -283,7 +269,7 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
       clearTimeout(fallback);
       if (typeof cancelIdleCallback !== "undefined" && id) cancelIdleCallback(id);
     };
-  }, []);
+  }, [isMobile]);
 
   // When deferred video is mounted and can play, show it and hide poster
   useEffect(() => {
@@ -323,30 +309,33 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
     };
   }, [showVideo]);
 
+  // Read ?service= from URL on client only (avoids useSearchParams which can crash on mobile)
   useEffect(() => {
-    if (preselectedService && hasMounted) {
-      const formattedService = preselectedService
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      
-      const serviceMap: { [key: string]: string } = {
-        "Machinery": "Machinery Transport",
-        "Containers": "Container Relocation",
-        "Materials": "Material Delivery",
-        "Urgent": "Urgent Lift"
-      };
+    if (!hasMounted || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const preselectedService = params.get("service");
+    if (!preselectedService) return;
 
-      const service = serviceMap[formattedService] || formattedService;
-      setSelectedService(service);
-      setFormData(prev => ({ ...prev, service }));
-      
-      // Smooth scroll to quote section after a short delay
-      setTimeout(() => {
-        quoteRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 500);
-    }
-  }, [preselectedService, hasMounted]);
+    const formattedService = preselectedService
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    const serviceMap: { [key: string]: string } = {
+      Machinery: "Machinery Transport",
+      Containers: "Container Relocation",
+      Materials: "Material Delivery",
+      Urgent: "Urgent Lift",
+    };
+
+    const service = serviceMap[formattedService] || formattedService;
+    setSelectedService(service);
+    setFormData((prev) => ({ ...prev, service }));
+
+    setTimeout(() => {
+      quoteRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 500);
+  }, [hasMounted]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!mapRef.current) return;
@@ -605,8 +594,8 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
           quality={85}
           fetchPriority="high"
         />
-        {/* Video: mounted after idle; playsInline + muted for mobile autoplay */}
-        {showVideo && (
+        {/* Video: desktop only (mobile gets poster only to avoid memory/decode crashes) */}
+        {showVideo && !isMobile && (
           <video
             ref={videoRef}
             autoPlay
