@@ -28,16 +28,8 @@ import {
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
-import dynamic from "next/dynamic";
 import { useState, useRef, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-
-const TruckScene = dynamic(() => import("@/components/TruckScene").then((m) => m.default), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl bg-[#fafafa] animate-pulse" aria-hidden="true" />
-  ),
-});
 
 /**
  * MOBILE-FIRST DESIGN SYSTEM (Applied 2026 Polish)
@@ -130,8 +122,6 @@ function LandingContent() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  /** On mobile, mount 3D fleet only after requestIdleCallback so initial paint is fast. */
-  const [showFleet3D, setShowFleet3D] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLElement>(null);
@@ -301,22 +291,6 @@ function LandingContent() {
       if (id && window.cancelIdleCallback) window.cancelIdleCallback(id);
     };
   }, []);
-
-  // On mobile, mount 3D fleet only after idle so initial paint is fast; desktop can show immediately.
-  useEffect(() => {
-    if (!hasMounted || !isMobile) {
-      if (!isMobile) setShowFleet3D(true);
-      return;
-    }
-    const fallback = setTimeout(() => setShowFleet3D(true), 2000);
-    const id = window.requestIdleCallback
-      ? window.requestIdleCallback(() => { setShowFleet3D(true); clearTimeout(fallback); }, { timeout: 1800 })
-      : 0;
-    return () => {
-      clearTimeout(fallback);
-      if (id && window.cancelIdleCallback) window.cancelIdleCallback(id);
-    };
-  }, [hasMounted, isMobile]);
 
   // When deferred video is mounted and can play, show it and hide poster
   useEffect(() => {
@@ -827,23 +801,19 @@ function LandingContent() {
         </div>
       </section>
 
-      {/* 4. FLEET — 3D on desktop immediately; on mobile after requestIdleCallback. Fallback = static image. */}
+      {/* 4. FLEET — static truck image for all devices (no Canvas / WebGL / GLB). */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
             <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl overflow-hidden bg-[#fafafa] relative">
-              {showFleet3D ? (
-                <TruckScene />
-              ) : (
-                <Image
-                  src="/assets/IMG_9208.webp"
-                  alt="Hariz crane truck"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 768px) 350px, 400px"
-                  priority={false}
-                />
-              )}
+              <Image
+                src="/assets/IMG_9208.webp"
+                alt="Hariz crane truck"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 350px, 400px"
+                priority={false}
+              />
             </div>
           </motion.div>
           <div className="lg:col-span-6">

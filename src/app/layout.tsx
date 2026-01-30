@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
-import { ClientPolyfills } from "@/app/ClientPolyfills";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -37,22 +37,27 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preload LCP image only; GLB/video not preloaded to avoid "preloaded but not used" on mobile (lazy-loaded after paint). */}
+        {/* requestIdleCallback + cancelIdleCallback polyfill — runs before any client JS to prevent iPhone Safari crash. */}
+        <Script
+          id="requestidlecallback-polyfill"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){if(typeof window==='undefined')return;if(!('requestIdleCallback'in window)){window.requestIdleCallback=function(cb){var start=Date.now();return setTimeout(function(){cb({didTimeout:false,timeRemaining:function(){return Math.max(0,50-(Date.now()-start));}});},1);};}if(!('cancelIdleCallback'in window)){window.cancelIdleCallback=function(id){clearTimeout(id);};}})();`,
+          }}
+        />
+        {/* Preload LCP hero image only; no GLB preload (3D removed — fleet uses static truck image). */}
         <link
           rel="preload"
           href="/assets/IMG_9208.webp"
           as="image"
           fetchPriority="high"
         />
-        {/* Preconnect to improve loading */}
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
         {/* DNS prefetch for external resources */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body suppressHydrationWarning>
-        <ClientPolyfills />
         <ErrorLogger />
         <ErrorBoundary fallback={null}>
           <GoogleAnalytics />
