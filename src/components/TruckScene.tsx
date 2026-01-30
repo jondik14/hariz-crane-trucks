@@ -169,7 +169,7 @@ function TruckSceneInner() {
           shadows={!mobile}
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
-          style={{ position: "absolute", inset: 0, zIndex: 1, background: "transparent" }}
+          style={{ position: "absolute", inset: 0, zIndex: 1, background: "transparent", backgroundColor: "#fafafa" }}
           dpr={mobile ? [1, 1.25] : [1, 1.5]}
           performance={{ min: mobile ? 0.25 : 0.5 }}
           gl={{
@@ -181,6 +181,7 @@ function TruckSceneInner() {
             failIfMajorPerformanceCaveat: false,
           }}
           onCreated={({ gl }) => {
+            gl.setClearColor(0xfafafa, 1);
             if (mobile) {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             }

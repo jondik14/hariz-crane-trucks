@@ -107,7 +107,8 @@ type LandingContentProps = { preselectedService?: string | null };
 function LandingContent({ preselectedService: preselectedServiceProp }: LandingContentProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  /* Assume mobile until we know otherwise — prevents 3D from ever mounting on phones (avoids crash) */
+  const [isMobile, setIsMobile] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [contentReady, setContentReady] = useState(false);
