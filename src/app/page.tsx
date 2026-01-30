@@ -93,14 +93,7 @@ export default function LandingPage() {
         </button>
       </div>
     }>
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
-            <p className="text-[#2a1c2f] font-black uppercase tracking-widest text-[11px]">Loading...</p>
-          </div>
-        </div>
-      }>
+      <Suspense fallback={<LandingContent />}>
         <ErrorBoundary fallback={<LandingContent />}>
           <PageWithSearchParams />
         </ErrorBoundary>
@@ -287,10 +280,9 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
     setContentReady(true);
   }, []);
 
-  // Preload 3D fleet chunk and GLB on page load so there’s no delay or flicker
+  // Preload 3D fleet chunk and GLB on desktop only (skip on mobile to save memory and avoid WebGL)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Start loading the TruckScene JS chunk and the GLB immediately (no delay)
+    if (typeof window === "undefined" || isMobile) return;
     const preload = () => {
       try {
         import("@/components/TruckScene");
@@ -302,9 +294,9 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
       } catch (_) {}
     };
     preload();
-  }, []);
+  }, [isMobile]);
 
-  // Defer video load until idle or 1.5s so it does not block LCP
+  // Defer video load until idle so it does not block LCP
   useEffect(() => {
     const fallback = setTimeout(() => setShowVideo(true), 1500);
     const id = typeof requestIdleCallback !== "undefined"
@@ -636,7 +628,7 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
           quality={85}
           fetchPriority="high"
         />
-        {/* Video: mounted after requestIdleCallback or 1.5s; playsInline + muted for mobile autoplay */}
+        {/* Video: mounted after idle; playsInline + muted for mobile autoplay */}
         {showVideo && (
           <video
             ref={videoRef}
@@ -828,11 +820,24 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
         </div>
       </section>
 
-      {/* 4. FLEET — 3D loaded only when in view to reduce main-thread work */}
+      {/* 4. FLEET — 3D on desktop only; static image on mobile to avoid WebGL/memory crashes */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
-            <FleetSection />
+            {hasMounted && !isMobile ? (
+              <FleetSection />
+            ) : (
+              <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl overflow-hidden bg-[#fafafa] relative">
+                <Image
+                  src="/assets/IMG_9208.webp"
+                  alt="Hariz crane truck"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 350px, 400px"
+                  priority={false}
+                />
+              </div>
+            )}
           </motion.div>
           <div className="lg:col-span-6">
             <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>

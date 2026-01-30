@@ -7,6 +7,7 @@ export function ErrorLogger() {
     if (typeof window === "undefined") return;
 
     const handleError = (event: ErrorEvent) => {
+      console.error("MOBILE ERROR:", event.message, event.filename, event.lineno, event.colno, event.error?.stack ?? event.error);
       console.error("Global error:", {
         message: event.message,
         filename: event.filename,
@@ -18,6 +19,7 @@ export function ErrorLogger() {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error("MOBILE ERROR (unhandled rejection):", event.reason);
       console.error("Unhandled promise rejection:", {
         reason: event.reason,
         promise: event.promise,

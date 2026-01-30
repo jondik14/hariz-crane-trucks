@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef, useEffect, useLayoutEffect, Suspense, useMemo } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, Environment, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+/** Sets scene background so deployed/production never shows black (clearColor can run after first frame). */
+function SceneBackground() {
+  const { scene } = useThree();
+  useLayoutEffect(() => {
+    scene.background = new THREE.Color(0xfafafa);
+    return () => {
+      scene.background = null;
+    };
+  }, [scene]);
+  return null;
+}
 
 const GLB_PATH = "/assets/models/crane-truck-3d-model.glb";
 
@@ -157,24 +169,24 @@ function TruckSceneInner() {
           shadows={!mobile}
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
-          style={{ position: "absolute", inset: 0, zIndex: 1, backgroundColor: bgColor }}
+          style={{ position: "absolute", inset: 0, zIndex: 1, background: "transparent" }}
           dpr={mobile ? [1, 1.25] : [1, 1.5]}
           performance={{ min: mobile ? 0.25 : 0.5 }}
-          gl={{ 
-            antialias: !mobile, 
+          gl={{
+            alpha: true,
+            antialias: !mobile,
             powerPreference: "high-performance",
-            alpha: false,
             stencil: false,
             depth: true,
-            failIfMajorPerformanceCaveat: false
+            failIfMajorPerformanceCaveat: false,
           }}
           onCreated={({ gl }) => {
-            gl.setClearColor(0xfafafa, 1);
             if (mobile) {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             }
           }}
         >
+          <SceneBackground />
           <ambientLight intensity={mobile ? 2 : 1.5} />
           {!mobile && <spotLight position={[20, 20, 20]} angle={0.3} penumbra={1} intensity={2} castShadow />}
           <directionalLight position={[-15, 15, 10]} intensity={mobile ? 1.5 : 1.5} />
