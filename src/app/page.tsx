@@ -63,20 +63,52 @@ const UrgentIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m11.5 20l4.86-9.73H13V4l-5 9.73h3.5zM12 2c2.75 0 5.1 1 7.05 2.95S22 9.25 22 12s-1 5.1-2.95 7.05S14.75 22 12 22s-5.1-1-7.05-2.95S2 14.75 2 12s1-5.1 2.95-7.05S9.25 2 12 2"></path></svg>
 );
 
+/** Minimal static fallback when main content throws (e.g. on mobile) — no Framer Motion, no heavy JS. */
+function StaticFallback() {
+  return (
+    <div className="min-h-screen bg-white text-[#2a1c2f] font-sans">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-24 flex items-center justify-between">
+          <a href="/">
+            <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
+          </a>
+          <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+            <a href="/about" className="hover:text-[#2a1c2f]">About</a>
+            <a href="/services" className="hover:text-[#2a1c2f]">Services</a>
+            <a href="#quote" className="hover:text-[#2a1c2f]">Contact</a>
+          </nav>
+          <a href="tel:0469798247" className="hidden lg:flex items-center gap-2 text-[#2a1c2f] font-black">0469 798 247</a>
+          <a href="#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-6 py-3.5 rounded-xl text-[11px] uppercase tracking-widest">Get Quote</a>
+        </div>
+      </header>
+      <main className="pt-24">
+        <section className="relative min-h-[70vh] flex items-center justify-center bg-[#2a1c2f]">
+          <Image src="/assets/IMG_9208.webp" alt="Hariz Transport" fill className="object-cover object-center opacity-60" sizes="100vw" priority />
+          <div className="absolute inset-0 bg-[#2a1c2f]/55 z-10" />
+          <div className="relative z-20 max-w-5xl px-6 text-center text-white">
+            <h1 className="text-3xl md:text-6xl font-black mb-6 uppercase">Sydney-Based <br /><span className="text-amber-500">Crane Truck Hire.</span></h1>
+            <p className="text-base md:text-lg text-zinc-100 mb-8">Residential and light commercial lifts. Safe, reliable, and locally operated across NSW.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="#quote" className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-4 rounded-xl uppercase">Book Your Lift</a>
+              <a href="tel:0469798247" className="text-white font-black text-xl hover:text-amber-500">0469 798 247</a>
+            </div>
+          </div>
+        </section>
+        <section id="quote" className="py-16 px-6 max-w-2xl mx-auto">
+          <h2 className="text-2xl font-black uppercase mb-6">Get a quote</h2>
+          <p className="text-zinc-600 mb-8">Call <a href="tel:0469798247" className="text-amber-600 font-bold">0469 798 247</a> or visit <a href="/services" className="text-amber-600 font-bold">Services</a> for more.</p>
+        </section>
+      </main>
+      <footer className="py-12 px-6 bg-[#2a1c2f] text-white text-center text-sm">
+        © Hariz Crane Trucks. All rights reserved.
+      </footer>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   return (
-    <ErrorBoundary fallback={
-      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white">
-        <h1 className="text-2xl font-black text-[#2a1c2f] mb-4">Something went wrong</h1>
-        <p className="text-zinc-600 mb-6 text-center">Please refresh the page to try again.</p>
-        <button 
-          onClick={() => typeof window !== "undefined" && window.location.reload()} 
-          className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-colors"
-        >
-          Refresh Page
-        </button>
-      </div>
-    }>
+    <ErrorBoundary fallback={<StaticFallback />}>
       <LandingContent />
     </ErrorBoundary>
   );
@@ -89,7 +121,7 @@ function LandingContent() {
   const [isMobile, setIsMobile] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [contentReady, setContentReady] = useState(false);
+  const [contentReady, setContentReady] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -208,7 +240,7 @@ function LandingContent() {
   useEffect(() => {
     setHasMounted(true);
     if (typeof window === "undefined") return;
-    
+
     // Use matchMedia for better mobile detection with error handling
     let mediaQuery: MediaQueryList | null = null;
     try {
@@ -227,7 +259,6 @@ function LandingContent() {
         mediaQuery.addListener(checkMobile);
       }
       window.addEventListener("resize", checkMobile);
-      
       return () => {
         if (mediaQuery) {
           if (mediaQuery.removeEventListener) {
@@ -250,12 +281,6 @@ function LandingContent() {
       window.addEventListener("resize", checkMobile);
       return () => window.removeEventListener("resize", checkMobile);
     }
-  }, []);
-
-  // LCP: show hero content immediately for better LCP
-  useEffect(() => {
-    // Set content ready immediately on mount for faster LCP
-    setContentReady(true);
   }, []);
 
   // Defer video load until idle — skip video on mobile to avoid memory/decode crashes

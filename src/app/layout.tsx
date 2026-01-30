@@ -4,7 +4,6 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorLogger } from "@/components/ErrorLogger";
-import ClientDebug from "./ClientDebug";
 
 export const metadata: Metadata = {
   title: "Hariz Transport | Crane Trucks & Heavy Haulage",
@@ -60,7 +59,6 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body suppressHydrationWarning>
-        <ClientDebug />
         <ErrorLogger />
         <ErrorBoundary fallback={null}>
           <GoogleAnalytics />
