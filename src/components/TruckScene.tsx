@@ -124,26 +124,24 @@ function TruckSceneInner() {
     }
   }, []);
 
-  // If WebGL is not supported, show fallback image
+  const bgColor = "#fafafa";
+
   if (!mounted) {
     return (
-      <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
-      </div>
+      <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl" style={{ backgroundColor: bgColor }} aria-hidden="true" />
     );
   }
 
   if (!webglSupported) {
     return (
-      <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+      <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center rounded-2xl" style={{ backgroundColor: bgColor }}>
         <p className="text-[#2a1c2f]/50 font-black uppercase tracking-widest text-[11px]">3D view unavailable</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible bg-zinc-50 rounded-2xl">
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] relative overflow-visible rounded-2xl" style={{ backgroundColor: bgColor }}>
       <div
         className="absolute inset-0 pointer-events-none z-0 rounded-2xl"
         style={{
@@ -152,31 +150,26 @@ function TruckSceneInner() {
       />
       <Suspense
         fallback={
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
-            <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
-          </div>
+          <div className="absolute inset-0 rounded-2xl" style={{ backgroundColor: bgColor }} aria-hidden="true" />
         }
       >
         <Canvas
           shadows={!mobile}
           camera={{ position: mobile ? [0, 8, 22] : [0, 12, 50], fov: mobile ? 40 : 30 }}
           className="w-full h-full"
-          style={{ position: "absolute", inset: 0, zIndex: 1 }}
+          style={{ position: "absolute", inset: 0, zIndex: 1, backgroundColor: bgColor }}
           dpr={mobile ? [1, 1.25] : [1, 1.5]}
           performance={{ min: mobile ? 0.25 : 0.5 }}
           gl={{ 
             antialias: !mobile, 
             powerPreference: "high-performance",
-            alpha: false, // Opaque background to show zinc-50
+            alpha: false,
             stencil: false,
             depth: true,
             failIfMajorPerformanceCaveat: false
           }}
-          onCreated={({ gl, scene }) => {
-            // Set clear color to match zinc-50 background (0xfafafa = rgb(250, 250, 250))
+          onCreated={({ gl }) => {
             gl.setClearColor(0xfafafa, 1);
-            // Optimize for mobile
             if (mobile) {
               gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             }
@@ -199,7 +192,7 @@ function TruckSceneInner() {
 }
 
 const Fallback = () => (
-  <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
+  <div className="w-full h-full min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center rounded-2xl" style={{ backgroundColor: "#fafafa" }}>
     <p className="text-[#2a1c2f]/50 font-black uppercase tracking-widest text-[11px]">Fleet view unavailable</p>
   </div>
 );

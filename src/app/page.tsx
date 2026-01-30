@@ -36,10 +36,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 const FleetSection = dynamic(() => import("@/components/TruckScene"), {
   ssr: false,
   loading: () => (
-    <div className="min-h-[320px] md:min-h-[380px] flex flex-col items-center justify-center bg-zinc-50 rounded-2xl">
-      <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
-    </div>
+    <div className="w-full h-full min-h-[320px] md:min-h-[380px] bg-[#fafafa] rounded-2xl" aria-hidden="true" />
   ),
 });
 
@@ -75,6 +72,13 @@ const UrgentIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m11.5 20l4.86-9.73H13V4l-5 9.73h3.5zM12 2c2.75 0 5.1 1 7.05 2.95S22 9.25 22 12s-1 5.1-2.95 7.05S14.75 22 12 22s-5.1-1-7.05-2.95S2 14.75 2 12s1-5.1 2.95-7.05S9.25 2 12 2"></path></svg>
 );
 
+/** Wrapper that reads search params and passes to content. Isolated so useSearchParams() cannot crash the whole page on mobile. */
+function PageWithSearchParams() {
+  const searchParams = useSearchParams();
+  const preselectedService = searchParams.get("service");
+  return <LandingContent preselectedService={preselectedService} />;
+}
+
 export default function LandingPage() {
   return (
     <ErrorBoundary fallback={
@@ -97,13 +101,17 @@ export default function LandingPage() {
           </div>
         </div>
       }>
-        <LandingContent />
+        <ErrorBoundary fallback={<LandingContent />}>
+          <PageWithSearchParams />
+        </ErrorBoundary>
       </Suspense>
     </ErrorBoundary>
   );
 }
 
-function LandingContent() {
+type LandingContentProps = { preselectedService?: string | null };
+
+function LandingContent({ preselectedService: preselectedServiceProp }: LandingContentProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -116,49 +124,8 @@ function LandingContent() {
   const quoteRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fleetRef = useRef<HTMLDivElement>(null);
-  const [fleetInView, setFleetInView] = useState(false);
-  
-  // Use IntersectionObserver manually to avoid SSR issues
-  useEffect(() => {
-    if (typeof window === "undefined" || !fleetRef.current) return;
-    
-    // Check if IntersectionObserver is supported
-    if (typeof IntersectionObserver === "undefined") {
-      // Fallback: show fleet section after a delay if IntersectionObserver not available
-      const timer = setTimeout(() => setFleetInView(true), 1000);
-      return () => clearTimeout(timer);
-    }
-    
-    try {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0]?.isIntersecting) {
-            setFleetInView(true);
-          }
-        },
-        { rootMargin: "400px", threshold: 0.01 } // Larger margin to start loading much earlier
-      );
-      
-      if (fleetRef.current) {
-        observer.observe(fleetRef.current);
-      }
-      
-      return () => {
-        if (fleetRef.current) {
-          try {
-            observer.unobserve(fleetRef.current);
-          } catch (e) {
-            // Ignore errors during cleanup
-          }
-        }
-        observer.disconnect();
-      };
-    } catch (error) {
-      // Fallback if IntersectionObserver fails
-      console.warn("IntersectionObserver failed, showing fleet section:", error);
-      setFleetInView(true);
-    }
-  }, []);
+  // Show 3D fleet on page load immediately (no scroll delay) so it loads with the page
+  const [fleetInView] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -179,8 +146,7 @@ function LandingContent() {
 
   const maskImage = useMotionTemplate`radial-gradient(300px circle at ${springX}px ${springY}px, black 0%, transparent 100%)`;
 
-  const searchParams = useSearchParams();
-  const preselectedService = searchParams.get('service');
+  const preselectedService = preselectedServiceProp ?? null;
   const [selectedService, setSelectedService] = useState("Crane Hire");
   
   // Form submission handler
@@ -321,33 +287,21 @@ function LandingContent() {
     setContentReady(true);
   }, []);
 
-  // Preload 3D model immediately on mount for faster loading
+  // Preload 3D fleet chunk and GLB on page load so there’s no delay or flicker
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
-    // Start preloading the 3D model immediately
-    const preloadModel = () => {
+    // Start loading the TruckScene JS chunk and the GLB immediately (no delay)
+    const preload = () => {
       try {
-        // Use dynamic import to start loading the GLB file
+        import("@/components/TruckScene");
         import("@react-three/drei").then((drei) => {
           if (drei.useGLTF?.preload) {
             drei.useGLTF.preload("/assets/models/crane-truck-3d-model.glb");
           }
-        }).catch((error) => {
-          console.warn("Failed to preload 3D model:", error);
-        });
-      } catch (error) {
-        console.warn("Error setting up 3D model preload:", error);
-      }
+        }).catch(() => {});
+      } catch (_) {}
     };
-    
-    // Start preloading immediately, but use requestIdleCallback if available to not block critical rendering
-    if (typeof window.requestIdleCallback !== "undefined") {
-      window.requestIdleCallback(preloadModel, { timeout: 100 });
-    } else {
-      // Fallback: start immediately but on next tick
-      setTimeout(preloadModel, 0);
-    }
+    preload();
   }, []);
 
   // Defer video load until idle or 1.5s so it does not block LCP
@@ -878,12 +832,7 @@ function LandingContent() {
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
-            {fleetInView ? <FleetSection /> : <div className="w-full h-full min-h-[320px] md:min-h-[380px] bg-zinc-50 rounded-2xl flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
-                <p className="text-[#2a1c2f]/40 font-black uppercase tracking-widest text-[10px]">Loading 3D Fleet...</p>
-              </div>
-            </div>}
+            <FleetSection />
           </motion.div>
           <div className="lg:col-span-6">
             <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>

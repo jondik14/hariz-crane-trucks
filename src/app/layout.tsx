@@ -60,6 +60,12 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ErrorLogger />
+        <ErrorBoundary fallback={null}>
+          <GoogleAnalytics />
+        </ErrorBoundary>
+        <ErrorBoundary fallback={null}>
+          <MicrosoftClarity />
+        </ErrorBoundary>
         <ErrorBoundary fallback={
           <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white">
             <h1 className="text-2xl font-black text-[#2a1c2f] mb-4">Something went wrong</h1>
@@ -72,8 +78,6 @@ export default function RootLayout({
             </button>
           </div>
         }>
-          <GoogleAnalytics />
-          <MicrosoftClarity />
           {children}
         </ErrorBoundary>
       </body>

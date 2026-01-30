@@ -1,30 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import Script from "next/script";
 
+/**
+ * Load Microsoft Clarity via script tag only (no npm package import).
+ * This avoids any React/hydration issues on mobile that the @microsoft/clarity package can cause.
+ */
 export function MicrosoftClarity() {
   const projectId = process.env.NEXT_PUBLIC_CLARITY_ID;
 
-  useEffect(() => {
-    // Don't initialize if no project ID is configured
-    if (!projectId || typeof window === "undefined") {
-      return;
-    }
+  if (!projectId) {
+    return null;
+  }
 
-    // Initialize Clarity with error handling
-    try {
-      // Dynamic import to avoid SSR issues
-      import("@microsoft/clarity").then((Clarity) => {
-        if (Clarity.default?.init) {
-          Clarity.default.init(projectId);
-        }
-      }).catch((error) => {
-        console.warn("Failed to load Microsoft Clarity:", error);
-      });
-    } catch (error) {
-      console.warn("Error initializing Microsoft Clarity:", error);
-    }
-  }, [projectId]);
-
-  return null;
+  return (
+    <Script
+      id="clarity-script"
+      strategy="afterInteractive"
+      src={`https://www.clarity.ms/tag/${projectId}`}
+    />
+  );
 }
