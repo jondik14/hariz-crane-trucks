@@ -210,9 +210,9 @@ export default function ServicesPage() {
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <Image src="/assets/IMG_9212.webp" alt="Services Background" fill className="object-cover grayscale" priority />
+      <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden min-h-[320px]">
+        <div className="absolute inset-0 opacity-20 min-h-0">
+          <Image src="/assets/IMG_9212.webp" alt="Services Background" fill className="object-cover object-center grayscale" sizes="100vw" priority />
         </div>
         <div className="absolute inset-0 bg-[#2a1c2f]/85" />
         
@@ -240,8 +240,8 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {services.map((s, i) => (
             <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="group flex flex-col h-full border border-zinc-100 rounded-[2rem] overflow-hidden hover:border-amber-400/50 hover:shadow-2xl transition-all duration-500">
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image src={s.img} alt={s.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700 grayscale-[0.5] group-hover:grayscale-0" />
+              <div className="relative aspect-[4/3] min-h-[200px] overflow-hidden bg-zinc-100">
+                <Image src={s.img} alt={s.title} fill className="object-cover object-center min-w-full min-h-full max-w-full max-h-full group-hover:scale-110 transition-transform duration-700 grayscale-[0.5] group-hover:grayscale-0" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                 <div className="absolute top-6 left-6 w-14 h-14 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center text-[#2a1c2f] shadow-xl group-hover:bg-amber-400 transition-colors">
                   {s.icon}
                 </div>
@@ -279,8 +279,8 @@ export default function ServicesPage() {
               </div>
             </div>
           </div>
-          <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="lg:col-span-5 relative rounded-3xl overflow-hidden aspect-video lg:aspect-square shadow-2xl">
-            <Image src="/assets/IMG_9197.webp" alt="Contact Us" fill className="object-cover" />
+          <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="lg:col-span-5 relative rounded-3xl overflow-hidden aspect-[4/3] min-h-[220px] max-h-[380px] md:max-h-[420px] lg:aspect-square lg:min-h-[320px] lg:max-h-none shadow-2xl bg-zinc-100">
+            <Image src="/assets/IMG_9197.webp" alt="Contact Us" fill className="object-contain object-center" sizes="(max-width: 1024px) 100vw, 40vw" />
           </motion.div>
         </div>
       </section>
