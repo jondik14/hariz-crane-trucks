@@ -28,17 +28,9 @@ import {
   ChevronRight as ChevronIcon
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import dynamic from "next/dynamic";
 import { motion, useMotionValue, useSpring, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-
-const FleetSection = dynamic(() => import("@/components/TruckScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[320px] md:min-h-[380px] bg-[#fafafa] rounded-2xl" aria-hidden="true" />
-  ),
-});
 
 /**
  * MOBILE-FIRST DESIGN SYSTEM (Applied 2026 Polish)
@@ -280,22 +272,6 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
     // Set content ready immediately on mount for faster LCP
     setContentReady(true);
   }, []);
-
-  // Preload 3D fleet chunk and GLB on desktop only (skip on mobile to save memory and avoid WebGL)
-  useEffect(() => {
-    if (typeof window === "undefined" || isMobile) return;
-    const preload = () => {
-      try {
-        import("@/components/TruckScene");
-        import("@react-three/drei").then((drei) => {
-          if (drei.useGLTF?.preload) {
-            drei.useGLTF.preload("/assets/models/crane-truck-3d-model.glb");
-          }
-        }).catch(() => {});
-      } catch (_) {}
-    };
-    preload();
-  }, [isMobile]);
 
   // Defer video load until idle so it does not block LCP
   useEffect(() => {
@@ -821,24 +797,20 @@ function LandingContent({ preselectedService: preselectedServiceProp }: LandingC
         </div>
       </section>
 
-      {/* 4. FLEET — 3D on desktop only; static image on mobile to avoid WebGL/memory crashes */}
+      {/* 4. FLEET — static image only (3D removed to test mobile crash fix) */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div ref={fleetRef} {...snappyEntrance} className="lg:col-span-6 relative w-full max-w-[350px] md:max-w-[400px] mx-auto lg:max-w-none aspect-square md:aspect-square">
-            {hasMounted && !isMobile ? (
-              <FleetSection />
-            ) : (
-              <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl overflow-hidden bg-[#fafafa] relative">
-                <Image
-                  src="/assets/IMG_9208.webp"
-                  alt="Hariz crane truck"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 768px) 350px, 400px"
-                  priority={false}
-                />
-              </div>
-            )}
+            <div className="w-full h-full min-h-[320px] md:min-h-[380px] rounded-2xl overflow-hidden bg-[#fafafa] relative">
+              <Image
+                src="/assets/IMG_9208.webp"
+                alt="Hariz crane truck"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 350px, 400px"
+                priority={false}
+              />
+            </div>
           </motion.div>
           <div className="lg:col-span-6">
             <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase text-[#2a1c2f] leading-[1.1]">2022 Hino <br />Precision.</motion.h2>
