@@ -1,0 +1,16 @@
+{
+  "name": "Hariz Crane Trucks",
+  "short_name": "Hariz Crane Trucks",
+  "description": "Crane truck hire and heavy transport services across Sydney.",
+  "icons": [
+    {
+      "src": "/assets/hariz favicon.svg?v=2",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#2a1c2f",
+  "background_color": "#2a1c2f",
+  "display": "standalone",
+  "start_url": "/"
+}

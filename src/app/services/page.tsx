@@ -130,7 +130,7 @@ export default function ServicesPage() {
             <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileMenuOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
-            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-600">
               <a href="/about" className="hover:text-[#2a1c2f] transition-colors">About</a>
               <a href="/services" className="text-[#2a1c2f]">Services</a>
               <a href="/#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
@@ -237,6 +237,7 @@ export default function ServicesPage() {
 
       {/* SERVICES GRID */}
       <section className="py-20 md:py-32 bg-white">
+        <h2 className="sr-only">Our Services</h2>
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {services.map((s, i) => (
             <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.1 }} className="group flex flex-col h-full border border-zinc-100 rounded-[2rem] overflow-hidden hover:border-amber-400/50 hover:shadow-2xl transition-all duration-500">
@@ -251,10 +252,10 @@ export default function ServicesPage() {
                 <p className="text-zinc-500 font-medium leading-relaxed mb-8 flex-grow">{s.desc}</p>
                 <div className="flex flex-wrap gap-2 mb-8">
                   {s.tags.map((tag, j) => (
-                    <span key={j} className="bg-zinc-50 text-zinc-400 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-zinc-100">{tag}</span>
+                    <span key={j} className="bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-zinc-200">{tag}</span>
                   ))}
                 </div>
-                <a href={`/?service=${s.slug}#quote`} className="inline-flex items-center gap-3 text-amber-600 font-black uppercase tracking-widest text-[11px] group-hover:gap-5 transition-all">
+                <a href={`/?service=${s.slug}#quote`} className="inline-flex items-center gap-3 text-amber-700 font-black uppercase tracking-widest text-[11px] group-hover:gap-5 transition-all">
                   Book Service <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -267,14 +268,14 @@ export default function ServicesPage() {
       <section className="py-20 md:py-32 bg-zinc-50 overflow-hidden relative border-t border-zinc-100">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <div className="lg:col-span-7">
-            <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-tight">Need a <br /> <span className="text-amber-500">Lifting Plan?</span></motion.h2>
+            <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-tight">Need a <br /> <span className="text-amber-600">Lifting Plan?</span></motion.h2>
             <motion.p {...snappyEntrance} transition={{ delay: 0.1 }} className="text-zinc-600 text-base md:text-lg font-medium mb-10 md:mb-12 leading-relaxed max-w-xl">
               Talk to us today for practical advice and upfront pricing. We handle everything from site checks to final delivery.
             </motion.p>
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6">
               <a href="/#quote" className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-10 py-5 rounded-xl text-[13px] uppercase tracking-widest transition-all shadow-xl active:scale-95 text-center flex items-center justify-center gap-4">Get My Quote <ArrowRight className="w-4 h-4" /></a>
               <div className="flex flex-col items-center md:items-start">
-                <p className="text-[11px] font-black text-zinc-300 uppercase tracking-widest mb-1">Direct Call</p>
+                <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-1">Direct Call</p>
                 <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-xl md:text-3xl font-black text-[#2a1c2f] hover:text-amber-500 transition-colors">0469 798 247</a>
               </div>
             </div>
@@ -293,9 +294,10 @@ export default function ServicesPage() {
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
               <div className="relative w-full max-w-sm mb-8">
-                <input 
-                  type="email" 
-                  placeholder="Your Email" 
+                <input
+                  type="email"
+                  aria-label="Email address"
+                  placeholder="Your Email"
                   className="w-full bg-white/5 border border-white/10 rounded-full px-6 py-4 outline-none focus:border-amber-500 transition-colors text-sm"
                 />
                 <button className="absolute right-2 top-2 bottom-2 bg-white text-[#2a1c2f] px-6 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-amber-500 transition-colors">
@@ -314,7 +316,7 @@ export default function ServicesPage() {
 
             {/* Services Links */}
             <div className="lg:col-span-3 text-center md:text-left">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Services</h4>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Services</h3>
               <ul className="space-y-4">
                 {[
                   { name: "Crane Hire", slug: "crane-hire" },
@@ -340,7 +342,7 @@ export default function ServicesPage() {
 
             {/* Company Links */}
             <div className="lg:col-span-2 text-center md:text-left">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Company</h4>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Company</h3>
               <ul className="space-y-4">
                 {[
                   { name: "About Us", href: "/about" },

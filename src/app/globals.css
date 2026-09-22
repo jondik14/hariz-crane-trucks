@@ -1,10 +1,2 @@
 @import "tailwindcss";
 
-/* Prevent black background on R3F/Three.js canvas — show container bg instead */
-canvas {
-  background: transparent !important;
-}
-
-
-
-

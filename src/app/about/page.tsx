@@ -82,7 +82,7 @@ export default function AboutPage() {
             <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileMenuOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
-            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-600">
               <a href="/about" className="text-[#2a1c2f]">About</a>
               <a href="/services" className="hover:text-[#2a1c2f] transition-colors">Services</a>
               <a href="/#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
@@ -164,7 +164,7 @@ export default function AboutPage() {
       {/* HERO SECTION */}
       <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 bg-[#2a1c2f] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-40">
-          <Image src="/assets/contsurciton gravel 2.webp" alt="Background" fill className="object-cover" priority />
+          <Image src="/assets/contsurciton gravel 2.webp" alt="" fill className="object-cover" priority />
         </div>
         <div className="absolute inset-0 bg-[#2a1c2f]/85" />
         
@@ -201,7 +201,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <p className="text-lg md:text-xl font-black text-[#2a1c2f] leading-tight">{stat.value}</p>
-                <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest mt-1">{stat.label}</p>
+                <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest mt-1">{stat.label}</p>
               </div>
             </motion.div>
           ))}
@@ -212,7 +212,7 @@ export default function AboutPage() {
       <section className="pt-12 md:pt-16 pb-20 md:pb-32 bg-white">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
           <div className="lg:col-span-6">
-            <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Process</motion.span>
+            <motion.span {...snappyEntrance} className="text-amber-700 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Our Process</motion.span>
             <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black mb-8 md:mb-10 tracking-tight uppercase text-[#2a1c2f] leading-none text-balance">Grounded in Safety and Clear Communication.</motion.h2>
             <motion.div {...snappyEntrance} transition={{ delay: 0.2 }} className="space-y-6 text-zinc-600 text-base md:text-lg font-medium leading-relaxed">
               <p>We approach every job with a practical mindset. As a small team, we take the time to understand the requirements of your lift before we arrive on site.</p>
@@ -274,8 +274,8 @@ export default function AboutPage() {
       {/* GALLERY GRID */}
       <section className="py-20 md:py-32 bg-zinc-50">
         <div className="max-w-7xl mx-auto px-6 mb-12">
-          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block text-center md:text-left">Gallery</motion.span>
-          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] text-center md:text-left">Real Jobs. <span className="text-amber-500">Real Results.</span></motion.h2>
+          <motion.span {...snappyEntrance} className="text-amber-700 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block text-center md:text-left">Gallery</motion.span>
+          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] text-center md:text-left">Real Jobs. <span className="text-amber-600">Real Results.</span></motion.h2>
         </div>
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {galleryImages.map((src, i) => (
@@ -318,9 +318,10 @@ export default function AboutPage() {
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
               <div className="relative w-full max-w-sm mb-8">
-                <input 
-                  type="email" 
-                  placeholder="Your Email" 
+                <input
+                  type="email"
+                  aria-label="Email address"
+                  placeholder="Your Email"
                   className="w-full bg-white/5 border border-white/10 rounded-full px-6 py-4 outline-none focus:border-amber-500 transition-colors text-sm"
                 />
                 <button className="absolute right-2 top-2 bottom-2 bg-white text-[#2a1c2f] px-6 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-amber-500 transition-colors">
@@ -339,7 +340,7 @@ export default function AboutPage() {
 
             {/* Services Links */}
             <div className="lg:col-span-3 text-center md:text-left">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Services</h4>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Services</h3>
               <ul className="space-y-4">
                 {[
                   { name: "Crane Hire", slug: "crane-hire" },
@@ -365,7 +366,7 @@ export default function AboutPage() {
 
             {/* Company Links */}
             <div className="lg:col-span-2 text-center md:text-left">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Company</h4>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8">Our Company</h3>
               <ul className="space-y-4">
                 {[
                   { name: "About Us", href: "/about" },

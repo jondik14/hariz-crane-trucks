@@ -416,15 +416,9 @@ function LandingContent() {
       "/assets/gallery/gallery-6.webp",
       "/assets/gallery/gallery-7.webp",
       "/assets/gallery/gallery-8.webp",
-      "/assets/gallery/gallery-9.webp",
-      "/assets/gallery/21767683883.webp",
-      "/assets/gallery/3-11767683883.webp",
-      "/assets/gallery/81767683885.webp",
-      "/assets/gallery/91767683885.webp"
+      "/assets/gallery/gallery-9.webp"
     ],
     [
-      "/assets/gallery/51767683885.webp",
-      "/assets/gallery/71767683885.webp",
       "/assets/gallery/IMG_1795-scaled1767683885.webp",
       "/assets/gallery/IMG_1837-scaled1767683884.webp",
       "/assets/gallery/IMG_1928-scaled1767683884.webp",
@@ -473,7 +467,7 @@ function LandingContent() {
   }, [lightboxOpen]);
 
   const testimonials = [
-    { name: "James Walker", role: "Builder", quote: "Clear communication and safe delivery. dependency you can trust.", initials: "JW", img: "/assets/IMG_9196.webp", jobImg: "/assets/IMG_9190.webp" },
+    { name: "James Walker", role: "Builder", quote: "Clear communication and safe delivery. Dependability you can trust.", initials: "JW", img: "/assets/IMG_9196.webp", jobImg: "/assets/IMG_9190.webp" },
     { name: "Sarah Mitchell", role: "Homeowner", quote: "Handled machinery professionally. On time and safe handling.", initials: "SM", img: "/assets/IMG_9197.webp", jobImg: "/assets/IMG_9200.webp" },
     { name: "David Thompson", role: "Contractor", quote: "Smooth container delivery. Accurate placement without issues.", initials: "DT", img: "/assets/IMG_9206.webp", jobImg: "/assets/IMG_9208.webp" },
     { name: "Olivia Harris", role: "Project Manager", quote: "Honest pricing and zero damage. Trusted support for every job.", initials: "OH", img: "/assets/IMG_9212.webp", jobImg: "/assets/IMG_9251.webp" }
@@ -518,7 +512,7 @@ function LandingContent() {
             <a href="/" className="transition-transform hover:scale-[1.02]" onClick={() => setMobileMenuOpen(false)}>
               <Image src="/assets/Logo.png" alt="Hariz Transport" width={200} height={116} className="w-[160px] md:w-[200px] h-auto object-contain" priority />
             </a>
-            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+            <nav className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-zinc-600">
               <a href="/about" className="hover:text-[#2a1c2f] transition-colors">About</a>
               <a href="/services" className="hover:text-[#2a1c2f] transition-colors">Services</a>
               <a href="#quote" className="hover:text-[#2a1c2f] transition-colors">Contact</a>
@@ -535,6 +529,8 @@ function LandingContent() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center text-[#2a1c2f] hover:bg-amber-500 hover:text-white transition-all"
               aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -547,6 +543,7 @@ function LandingContent() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -708,7 +705,7 @@ function LandingContent() {
               </motion.div>
               
               <motion.h2 {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.1 }} className="text-3xl md:text-5xl font-black mb-6 tracking-tight uppercase leading-[0.95] text-[#2a1c2f]">
-                Professional Lifts. <span className="text-amber-500">Grounded in Safety.</span>
+                Professional Lifts. <span className="text-amber-600">Grounded in Safety.</span>
               </motion.h2>
               
               <motion.p {...snappyEntrance} transition={{ ...snappyEntrance.transition, delay: 0.2 }} className="text-zinc-500 text-base md:text-lg font-medium mb-8 leading-relaxed">
@@ -784,7 +781,7 @@ function LandingContent() {
                     {s.icon}
                   </div>
                   <h3 className="text-sm md:text-base font-black mb-1.5 tracking-tight uppercase text-white group-hover:text-amber-500 transition-colors">{s.title}</h3>
-                  <p className="text-zinc-400 font-medium text-[12px] leading-relaxed hidden md:block">{s.desc}</p>
+                  <p className="text-zinc-300 font-medium text-[12px] leading-relaxed hidden md:block">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -843,9 +840,9 @@ function LandingContent() {
       {/* RECENT PROJECTS */}
       <section className="py-16 md:py-24 bg-zinc-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 mb-12 md:mb-16">
-          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">Recent Works</motion.span>
+          <motion.span {...snappyEntrance} className="text-amber-700 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">Recent Works</motion.span>
           <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f]">
-            Technical <span className="text-amber-500">Lifts</span> <br className="md:hidden" /> & Transport
+            Technical <span className="text-amber-600">Lifts</span> <br className="md:hidden" /> & Transport
           </motion.h2>
         </div>
 
@@ -978,7 +975,7 @@ function LandingContent() {
             <div className="w-16 md:w-24 h-1 md:h-2 bg-amber-500 mb-4 md:mb-8" />
             <h2 className="text-2xl md:text-6xl font-black mb-4 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">
               Sydney-Wide <br />
-              <span className="text-amber-500">Crane Support</span>
+              <span className="text-amber-600">Crane Support</span>
             </h2>
             <div className="space-y-3 md:space-y-6 mb-6 md:mb-12">
               <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 rounded-xl md:rounded-2xl border border-zinc-100 shadow-sm">
@@ -1009,7 +1006,7 @@ function LandingContent() {
               </div>
               <div className="mt-6 md:mt-12 pt-5 md:pt-8 border-t border-zinc-100 text-center md:text-left">
                 <p className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-600">
-                  Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-600">0469 798 247</a> for direct assistance.
+                  Call <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-amber-700">0469 798 247</a> for direct assistance.
                 </p>
               </div>
             </div>
@@ -1029,7 +1026,7 @@ function LandingContent() {
           <motion.h2 {...snappyEntrance} className="text-2xl md:text-5xl font-black tracking-tight uppercase leading-[1.1] text-center md:text-left">
             Client <span className="text-amber-500">Feedback</span>
           </motion.h2>
-          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-600 font-medium mt-4 text-[15px] md:text-base text-center md:text-left max-w-xl mx-auto md:mx-0">Trusted by Sydney builders and homeowners.</motion.p>
+          <motion.p {...snappyEntrance} transition={{ delay: 0.2 }} className="text-zinc-400 font-medium mt-4 text-[15px] md:text-base text-center md:text-left max-w-xl mx-auto md:mx-0">Trusted by Sydney builders and homeowners.</motion.p>
         </div>
 
         <div className="flex whitespace-nowrap overflow-hidden relative">
@@ -1064,8 +1061,8 @@ function LandingContent() {
       {/* 6. FAQ */}
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <motion.span {...snappyEntrance} className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">FAQ</motion.span>
-          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] mb-12">Question? <span className="text-amber-500">Look here.</span></motion.h2>
+          <motion.span {...snappyEntrance} className="text-amber-700 font-black text-[13px] uppercase tracking-[0.3em] mb-3 md:mb-4 block">FAQ</motion.span>
+          <motion.h2 {...snappyEntrance} transition={{ delay: 0.1 }} className="text-2xl md:text-5xl font-black tracking-tight uppercase text-[#2a1c2f] mb-12">Question? <span className="text-amber-600">Look here.</span></motion.h2>
           <div className="space-y-4 text-left">
             {[
               { q: "What crane truck services do you provide?", a: "Crane hire, machinery transport, container moves, material deliveries, and urgent same-day services across Sydney and NSW." },
@@ -1076,13 +1073,13 @@ function LandingContent() {
               { q: "Do you handle residential and commercial projects?", a: "Absolutely. We assist homeowners, builders, and businesses with projects of all sizes." }
             ].map((faq, i) => (
               <motion.div key={i} {...snappyEntrance} transition={{ delay: i * 0.05 }} className="border border-zinc-100 rounded-2xl overflow-hidden group hover:border-amber-500/30 transition-colors">
-                <button onClick={() => setActiveFaq(activeFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 md:p-6 text-left transition-all">
+                <button onClick={() => setActiveFaq(activeFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 md:p-6 text-left transition-all" aria-expanded={activeFaq === i} aria-controls={`faq-answer-${i}`}>
                   <span className="font-bold text-base md:text-lg text-zinc-800 pr-6">{faq.q}</span>
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-zinc-100 transition-all ${activeFaq === i ? 'bg-[#2a1c2f] border-[#2a1c2f] rotate-180' : 'bg-white'}`}>
                     <ChevronDown className={`w-5 h-5 ${activeFaq === i ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
-                {activeFaq === i && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="px-5 md:px-6 pb-6 text-zinc-500 text-[15px] md:text-base font-medium leading-relaxed">{faq.a}</motion.div>}
+                {activeFaq === i && <motion.div id={`faq-answer-${i}`} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="px-5 md:px-6 pb-6 text-zinc-500 text-[15px] md:text-base font-medium leading-relaxed">{faq.a}</motion.div>}
               </motion.div>
             ))}
           </div>
@@ -1108,7 +1105,7 @@ function LandingContent() {
                     <Check className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-black mb-4 uppercase">Quote Request Sent!</h3>
-                  <p className="text-zinc-600 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
+                  <p className="text-zinc-300 mb-8">We&apos;ll get back to you within 15 minutes during business hours.</p>
                   <button 
                     onClick={() => setFormStatus("idle")}
                     className="bg-amber-500 hover:bg-amber-600 text-[#2a1c2f] font-black px-8 py-4 rounded-xl transition-all uppercase tracking-widest"
@@ -1124,49 +1121,52 @@ function LandingContent() {
                     </div>
                   )}
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Full Name *</label>
-                    <input 
-                      type="text" 
+                    <label htmlFor="quote-name" className="text-[11px] font-black uppercase tracking-widest text-amber-400 ml-1">Full Name *</label>
+                    <input
+                      id="quote-name"
+                      type="text"
                       name="name"
                       placeholder="John Smith" 
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 focus:border-amber-400 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold"
                       required 
                       disabled={formStatus === "loading"}
                     />
                   </div>
                   <div className="grid md:grid-cols-2 gap-5 md:gap-4">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Telephone *</label>
-                      <input 
-                        type="tel" 
+                      <label htmlFor="quote-phone" className="text-[11px] font-black uppercase tracking-widest text-amber-400 ml-1">Telephone *</label>
+                      <input
+                        id="quote-phone"
+                        type="tel"
                         name="phone"
                         inputMode="tel" 
                         placeholder="0469 798 247" 
                         value={formData.phone}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 focus:border-amber-400 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold"
                         required 
                         disabled={formStatus === "loading"}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Email *</label>
-                      <input 
-                        type="email" 
+                      <label htmlFor="quote-email" className="text-[11px] font-black uppercase tracking-widest text-amber-400 ml-1">Email *</label>
+                      <input
+                        id="quote-email"
+                        type="email"
                         name="email"
                         placeholder="email@provider.com" 
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold" 
+                        className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 focus:border-amber-400 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold"
                         required 
                         disabled={formStatus === "loading"}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="service-select" className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Select Service</label>
+                    <label htmlFor="service-select" className="text-[11px] font-black uppercase tracking-widest text-amber-400 ml-1">Select Service</label>
                     <select 
                       id="service-select"
                       name="service"
@@ -1175,7 +1175,7 @@ function LandingContent() {
                         setFormData(prev => ({ ...prev, service: e.target.value }));
                         setSelectedService(e.target.value);
                       }}
-                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold appearance-none"
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 focus:border-amber-400 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold appearance-none"
                       disabled={formStatus === "loading"}
                     >
                       <option>Crane Hire</option>
@@ -1186,14 +1186,15 @@ function LandingContent() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-amber-500/80 ml-1">Message</label>
-                    <textarea 
+                    <label htmlFor="quote-message" className="text-[11px] font-black uppercase tracking-widest text-amber-400 ml-1">Message</label>
+                    <textarea
+                      id="quote-message"
                       name="message"
                       placeholder="Lift weight, dimensions, location..." 
                       rows={3} 
                       value={formData.message}
                       onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold resize-none"
+                      className="w-full px-6 py-4.5 bg-[#35263b] border border-white/5 focus:border-amber-400 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none transition-all font-semibold resize-none"
                       disabled={formStatus === "loading"}
                     />
                   </div>
@@ -1219,7 +1220,7 @@ function LandingContent() {
             </div>
           </motion.div>
           <motion.div className="lg:col-span-6 flex flex-col justify-center text-center lg:text-left" initial={{ opacity: 0, x: isMobile ? 0 : 80, y: isMobile ? 80 : 0 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}>
-            <span className="text-amber-600 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Speak With Us</span>
+            <span className="text-amber-700 font-black text-[13px] uppercase tracking-[0.3em] mb-4 block">Speak With Us</span>
             <h3 className="text-2xl md:text-5xl font-black mb-6 md:mb-8 tracking-tight uppercase leading-[1.1] text-[#2a1c2f]">Call Us <br className="hidden md:block" /> Directly.</h3>
             <p className="text-zinc-500 text-[15px] md:text-xl font-medium mb-10 md:mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0">Direct owner contact. <br className="md:hidden" /> Clear timelines, upfront pricing, and reliable service.</p>
             <a href="tel:0469798247" onClick={trackCallClick} suppressHydrationWarning className="text-[#2a1c2f] font-black text-3xl md:text-6xl hover:text-amber-500 transition-all tracking-tighter mb-10 md:mb-12 block">0469 798 247</a>
@@ -1241,9 +1242,10 @@ function LandingContent() {
             <div className="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
               <Image src="/assets/Logo.png" alt="Hariz" width={220} height={120} className="mb-8 brightness-0 invert opacity-90 h-auto w-[200px] md:w-[240px]" />
               <div className="relative w-full max-w-sm mb-8">
-                <input 
-                  type="email" 
-                  placeholder="Your Email" 
+                <input
+                  type="email"
+                  aria-label="Email address"
+                  placeholder="Your Email"
                   className="w-full bg-white/5 border border-white/10 rounded-full px-6 py-4 outline-none focus:border-amber-500 transition-colors text-sm"
                 />
                 <button className="absolute right-2 top-2 bottom-2 bg-white text-[#2a1c2f] px-6 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-amber-500 transition-colors">

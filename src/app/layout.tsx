@@ -8,12 +8,18 @@ import { ErrorFallback } from "@/components/ErrorFallback";
 import { ErrorLogger } from "@/components/ErrorLogger";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://harizcranetrucks.com.au"),
   title: "Hariz Transport | Crane Trucks & Heavy Haulage",
   description: "Professional crane truck hire and heavy transport services across Sydney. Fully licensed, insured, and locally operated.",
   keywords: ["crane truck hire", "Sydney", "heavy haulage", "crane hire", "machinery transport", "container moves"],
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/assets/hariz favicon.svg?v=2",
+    apple: "/assets/Logo.png",
   },
+  manifest: "/site.webmanifest",
   verification: {
     google: "enZNLQIQbyFDDFklMLRhcACTjVgC-Dg6hbizvK9ME1s",
   },
@@ -28,6 +34,28 @@ export const metadata: Metadata = {
     locale: "en_AU",
     type: "website",
   },
+};
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "MovingCompany",
+  name: "Hariz Crane Trucks",
+  image: "https://harizcranetrucks.com.au/assets/Logo.png",
+  url: "https://harizcranetrucks.com.au",
+  telephone: "+61469798247",
+  email: "info@harizcranetrucks.com.au",
+  areaServed: [
+    { "@type": "City", name: "Sydney" },
+    { "@type": "State", name: "New South Wales" },
+  ],
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Sydney",
+    addressRegion: "NSW",
+    addressCountry: "AU",
+  },
+  priceRange: "$$",
+  description: "Owner-operated crane truck hire and heavy transport services across Sydney and regional NSW: crane hire, machinery transport, container moves, material delivery, heavy loads and urgent same-day lifts.",
 };
 
 export default function RootLayout({
@@ -57,6 +85,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
       </head>
       <body suppressHydrationWarning>
         <ErrorLogger />
