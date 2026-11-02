@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
     qualities: [65, 70, 85],
     minimumCacheTTL: 60,
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "hariz-crane-trucks(-rho)?\\.vercel\\.app" }],
+        destination: "https://harizcranetrucks.com.au/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

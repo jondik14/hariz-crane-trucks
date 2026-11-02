@@ -15,10 +15,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: "/assets/hariz favicon.svg?v=2",
-    apple: "/assets/Logo.png",
-  },
   manifest: "/site.webmanifest",
   verification: {
     google: "enZNLQIQbyFDDFklMLRhcACTjVgC-Dg6hbizvK9ME1s",
