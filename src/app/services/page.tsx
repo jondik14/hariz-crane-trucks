@@ -347,7 +347,8 @@ export default function ServicesPage() {
                 {[
                   { name: "About Us", href: "/about" },
                   { name: "Our Services", href: "/services" },
-                  { name: "Contact Us", href: "/#quote" }
+                  { name: "Contact Us", href: "/#quote" },
+                  { name: "Privacy Policy", href: "/privacy-policy" }
                 ].map((link, i) => (
                   <li key={i}>
                     <a 

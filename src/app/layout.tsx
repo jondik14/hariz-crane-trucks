@@ -8,7 +8,7 @@ import { ErrorFallback } from "@/components/ErrorFallback";
 import { ErrorLogger } from "@/components/ErrorLogger";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://harizcranetrucks.com.au"),
+  metadataBase: new URL("https://www.harizcranetrucks.com.au"),
   title: "Hariz Transport | Crane Trucks & Heavy Haulage",
   description: "Professional crane truck hire and heavy transport services across Sydney. Fully licensed, insured, and locally operated.",
   keywords: ["crane truck hire", "Sydney", "heavy haulage", "crane hire", "machinery transport", "container moves"],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hariz Transport | Crane Trucks & Heavy Haulage",
     description: "Professional crane truck hire and heavy transport services across Sydney.",
-    url: "https://harizcranetrucks.com.au",
+    url: "https://www.harizcranetrucks.com.au",
     siteName: "Hariz Crane Trucks",
     locale: "en_AU",
     type: "website",
@@ -36,8 +36,8 @@ const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MovingCompany",
   name: "Hariz Crane Trucks",
-  image: "https://harizcranetrucks.com.au/assets/Logo.png",
-  url: "https://harizcranetrucks.com.au",
+  image: "https://www.harizcranetrucks.com.au/assets/Logo.png",
+  url: "https://www.harizcranetrucks.com.au",
   telephone: "+61469798247",
   email: "info@harizcranetrucks.com.au",
   areaServed: [

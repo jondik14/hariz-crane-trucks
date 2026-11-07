@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         has: [{ type: "host", value: "hariz-crane-trucks(-rho)?\\.vercel\\.app" }],
-        destination: "https://harizcranetrucks.com.au/:path*",
+        destination: "https://www.harizcranetrucks.com.au/:path*",
         permanent: true,
       },
     ];
